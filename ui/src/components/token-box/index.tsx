@@ -5,12 +5,13 @@ import Metadata from "./metadata";
 
 export default function TokenBox() {
   return (
-    <>
-      <div>Token box</div>
-      <TokenSelector />
-      <ChainSelector />
+    <div className="p-3 border border-1 rounded-md">
+      <div className="flex gap-3">
+        <ChainSelector />
+        <TokenSelector />
+      </div>
       <TokenInput />
       <Metadata />
-    </>
+    </div>
   );
 }
