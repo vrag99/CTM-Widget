@@ -30,10 +30,10 @@ export default function SwapCard() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <FromAddress />
-          <TokenBox />
+          <TokenBox type="from" />
           <SwapIcon />
           <ToAddress />
-          <TokenBox />
+          <TokenBox type="to" />
           <GasFees />
         </CardContent>
         <CardFooter>

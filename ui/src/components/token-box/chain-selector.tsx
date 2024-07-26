@@ -1,89 +1,49 @@
-import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCentralStore } from "@/hooks/central-store";
+import { CHAIN_DATA } from "@/lib/chain-data";
+import { type TokenBoxVariant } from "@/lib/types";
 
-const frameworks = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
-
-export default function ChainSelector() {
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+export default function ChainSelector({ type }: TokenBoxVariant) {
+  const { setFromChain, setToChain } = useCentralStore();
+  const chains = CHAIN_DATA.map((chain) => ({
+    name: chain.name,
+    icon: chain.icon,
+  }));
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-[200px] justify-between"
-        >
-          {value
-            ? frameworks.find((framework) => framework.value === value)?.label
-            : "Select Chain"}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandInput placeholder="Search framework..." />
-          <CommandEmpty>No framework found.</CommandEmpty>
-          <CommandList>
-            {frameworks.map((framework) => (
-              <CommandItem
-                key={framework.value}
-                value={framework.value}
-                onSelect={(currentValue) => {
-                  setValue(currentValue === value ? "" : currentValue);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === framework.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {framework.label}
-              </CommandItem>
-            ))}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Select
+      onValueChange={(chain) => {
+        if (type === "from") {
+          setFromChain(chain);
+        } else if (type === "to") {
+          setToChain(chain);
+        }
+      }}
+    >
+      <SelectTrigger className="w-[200px]">
+        <SelectValue placeholder="Select Chain" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Chains</SelectLabel>
+          {chains.map((chain) => (
+            <SelectItem key={chain.name} value={chain.name}>
+              <div className="flex flex-row gap-2 items-center">
+                <img src={chain.icon} className="w-5 h-5 rounded-full" />{" "}
+                {chain.name}
+              </div>
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 }

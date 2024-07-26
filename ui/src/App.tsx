@@ -15,7 +15,8 @@ function App() {
           cy={1}
           cr={1}
           className={cn(
-            "[mask-image:linear-gradient(to_bottom_right,purple,transparent,transparent)] "
+            "[mask-image:linear-gradient(to_bottom_right,purple,transparent,transparent)] ",
+            "-z-10"
           )}
         />
       </main>

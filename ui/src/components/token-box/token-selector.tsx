@@ -1,89 +1,54 @@
-import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCentralStore } from "@/hooks/central-store";
+import { CHAIN_DATA } from "@/lib/chain-data";
+import { type Token } from "@/lib/types";
+import { type TokenBoxVariant } from "@/lib/types";
 
-const frameworks = [
-  {
-    value: "next.js",
-    label: "Next.js",
-  },
-  {
-    value: "sveltekit",
-    label: "SvelteKit",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
-
-export default function TokenSelector() {
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+export default function TokenSelector({ type }: TokenBoxVariant) {
+  const { fromChain, toChain, setFromToken, setToToken } = useCentralStore();
+  const tokens: Token[] =
+    CHAIN_DATA.find(
+      (chain) => chain.name === (type === "from" ? fromChain : toChain)
+    )?.tokens || [];
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-[200px] justify-between"
-        >
-          {value
-            ? frameworks.find((framework) => framework.value === value)?.label
-            : "Select Token"}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandInput placeholder="Search Token..." />
-          <CommandEmpty>No framework found.</CommandEmpty>
-          <CommandList>
-            {frameworks.map((framework) => (
-              <CommandItem
-                key={framework.value}
-                value={framework.value}
-                onSelect={(currentValue) => {
-                  setValue(currentValue === value ? "" : currentValue);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === framework.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {framework.label}
-              </CommandItem>
-            ))}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Select
+      onValueChange={(token) => {
+        if (type === "from") {
+          setFromToken(token);
+        } else if (type === "to") {
+          setToToken(token);
+        }
+      }}
+    >
+      <SelectTrigger className="w-[200px]">
+        <SelectValue placeholder="Select Token" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Tokens</SelectLabel>
+          {tokens.map((token) => (
+            <SelectItem
+              key={token.name}
+              value={token.name}
+              onClick={() => setFromToken(token.name)}
+            >
+              <div className="flex flex-row gap-2 items-center">
+                <img src={token.icon} className="w-5 h-5 rounded-full" />{" "}
+                {token.name}
+              </div>
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 }
