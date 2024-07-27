@@ -66,6 +66,14 @@ export default {
           from: { backgroundPosition: "200% 0" },
           to: { backgroundPosition: "-200% 0" },
         },
+        aurora: {
+          from: {
+            backgroundPosition: "50% 50%, 50% 50%",
+          },
+          to: {
+            backgroundPosition: "350% 50%, 350% 50%",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -76,3 +84,17 @@ export default {
   },
   plugins: [tailwindAnimate],
 };
+
+// import colors = require('tailwindcss/colors');
+// import { default: flattenColorPalette } = require("tailwindcss/lib/util/flattenColorPalette");
+
+// function addVariablesForColors({ addBase, theme }: any) {
+//   let allColors = flattenColorPalette(theme("colors"));
+//   let newVars = Object.fromEntries(
+//     Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+//   );
+ 
+//   addBase({
+//     ":root": newVars,
+//   });
+// }

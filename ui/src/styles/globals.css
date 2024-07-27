@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Removing the arrow buttons from the input with type="number" */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
 @layer base {
   :root {
     --background: 156 60% 98%;

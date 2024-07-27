@@ -11,6 +11,7 @@ import { useCentralStore } from "@/hooks/central-store";
 import { CHAIN_DATA } from "@/lib/chain-data";
 import { type Token } from "@/lib/types";
 import { type TokenBoxVariant } from "@/lib/types";
+import { useEffect } from "react";
 
 export default function TokenSelector({ type }: TokenBoxVariant) {
   const { fromChain, toChain, setFromToken, setToToken } = useCentralStore();
@@ -18,6 +19,14 @@ export default function TokenSelector({ type }: TokenBoxVariant) {
     CHAIN_DATA.find(
       (chain) => chain.name === (type === "from" ? fromChain : toChain)
     )?.tokens || [];
+
+  useEffect(() => {
+    setFromToken("");
+  }, [fromChain]);
+
+  useEffect(() => {
+    setToToken("");
+  }, [toChain]);
 
   return (
     <Select

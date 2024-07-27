@@ -3,13 +3,11 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   FromAddress,
   ToAddress,
   SwapIcon,
-  GasFees,
 } from "@/components/swap-user-data";
 import TokenBox from "@/components/token-box";
 import { Button } from "./ui/button";
@@ -20,7 +18,7 @@ import Settings from "./settings";
 export default function SwapCard() {
   return (
     <>
-      <Card className="min-w-[400px] bg-transparent backdrop-blur-[3px]">
+      <Card className="min-w-[400px] bg-transparent backdrop-blur-[8px] z-50">
         <CardHeader className="flex flex-row items-center mb-2 justify-between">
           <h1 className="text-3xl font-semibold">Swap</h1 >
           <div className="space-x-2">
@@ -34,7 +32,6 @@ export default function SwapCard() {
           <SwapIcon />
           <ToAddress />
           <TokenBox type="to" />
-          <GasFees />
         </CardContent>
         <CardFooter>
           <Button
