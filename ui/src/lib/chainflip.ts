@@ -28,8 +28,10 @@ interface QouteOptions {
 
 export class ChainflipSdkProvider {
     private sdk: SwapSDK
+    public testnet: boolean;
     constructor(options: sdkInitiationOptions) {
         this.sdk = new SwapSDK(options)
+        this.testnet = options.network === "perseverance"
     }
 
     public async getQoute(

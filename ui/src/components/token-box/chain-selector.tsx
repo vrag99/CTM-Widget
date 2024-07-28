@@ -36,6 +36,7 @@ const { fromChain,setFromChain, setToChain } = useCentralStore();
           icon: CHAIN_ICONS.find((chainIcon) => chainIcon.name === chain.name)?.icon,
         }));
         
+        
         setMappableChains(chainsInfo)
       })
     }
