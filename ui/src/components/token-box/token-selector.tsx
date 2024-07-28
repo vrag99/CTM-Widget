@@ -12,7 +12,7 @@ import { useCentralStore } from "@/hooks/central-store";
 import { TOKEN_ICONS } from "@/lib/token-icon";
 import { type Token } from "@/lib/types";
 import { type TokenBoxVariant } from "@/lib/types";
-import { Chain } from "@chainflip/sdk/swap";
+import { Asset, Chain } from "@chainflip/sdk/swap";
 import { useContext, useEffect, useState } from "react";
 
 export default function TokenSelector({ type }: TokenBoxVariant) {
@@ -23,9 +23,8 @@ export default function TokenSelector({ type }: TokenBoxVariant) {
   async function fetchTokens() {
     if (type === "from" && fromChain) {
       const tokens = await sdk.getAwailableAssets(fromChain as Chain);
-      console.log("tokens",tokens)
       const tokenInfo: Token[] = tokens.map((token) => ({
-        id: token.name,
+        id: token.asset,
         icon: TOKEN_ICONS.find((tokenIcon) => tokenIcon.name === token.asset)?.icon,
         data: token
       }));
@@ -34,7 +33,7 @@ export default function TokenSelector({ type }: TokenBoxVariant) {
     } else if (type === "to" && toChain) {
       const tokens = await sdk.getAwailableAssets(toChain as Chain);
       const tokenInfo: Token[] = tokens.map((token) => ({
-        id: token.name,
+        id: token.asset,
         icon: TOKEN_ICONS.find((tokenIcon) => tokenIcon.name === token.asset)?.icon,
         data: token
       }));
@@ -62,7 +61,7 @@ export default function TokenSelector({ type }: TokenBoxVariant) {
         }
       }}
     >
-      <SelectTrigger className="w-[200px]">
+      <SelectTrigger className="w-[50%]">
         <SelectValue placeholder="Select Token" />
       </SelectTrigger>
       <SelectContent>
@@ -71,7 +70,7 @@ export default function TokenSelector({ type }: TokenBoxVariant) {
           {tokens.map((token) => (
             <SelectItem
               key={token.id}
-              value={token.data.name}
+              value={token.data.asset}
               onClick={() => setFromToken(token)}
             >
               <div className="flex flex-row gap-2 items-center">

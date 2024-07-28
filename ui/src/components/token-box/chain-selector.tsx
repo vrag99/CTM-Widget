@@ -54,7 +54,7 @@ const { fromChain,setFromChain, setToChain } = useCentralStore();
         }
       }}
     >
-      <SelectTrigger className="w-[200px]">
+      <SelectTrigger className="w-[50%]">
         <SelectValue placeholder="Select Chain" />
       </SelectTrigger>
       <SelectContent>

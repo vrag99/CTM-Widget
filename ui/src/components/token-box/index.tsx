@@ -2,10 +2,8 @@ import TokenSelector from "./token-selector";
 import ChainSelector from "./chain-selector";
 import TokenInput from "./token-input";
 import Metadata from "./metadata";
-import { ChainInfo, type TokenBoxVariant } from "@/lib/types";
-import { useCentralStore } from "@/hooks/central-store";
-import { useEffect, useState } from "react";
-import { ChainflipSdkProvider } from "@/lib/chainflip";
+import { ChainInfo   } from "@/lib/types";
+
 
 interface TokenBoxProps{
   type: "from" | "to";
@@ -14,10 +12,7 @@ interface TokenBoxProps{
 
 
 export default function TokenBox({ type ,availableChains}: TokenBoxProps) {
-  const { fromChain, toChain, fromToken, toToken } = useCentralStore();
-  useEffect(() => {
-    console.log(fromChain, toChain, fromToken, toToken);
-  }, [fromChain, toChain, fromToken, toToken]);
+
 
 
   return (

@@ -1,5 +1,6 @@
 import { Asset, AssetData, Chain, ChainData, ChainflipNetwork, QuoteResponse, SwapSDK, } from "@chainflip/sdk/swap"
 import { ethers } from "ethers";
+import { Token } from "./types";
 
 interface brokerOptions {
     url: string;
@@ -15,6 +16,16 @@ interface sdkInitiationOptions {
 
 }
 
+interface QouteOptions {
+    srcChain: Chain;
+    srcAsset: Token;
+    destChain: Chain;
+    destAsset: Token;
+    amount:string;
+    brokerCommissionBps?: number;
+    affliateBrokers?: {account:string, commissionBps:number}[]; 
+}
+
 export class ChainflipSdkProvider {
     private sdk: SwapSDK
     constructor(options: sdkInitiationOptions) {
@@ -22,22 +33,16 @@ export class ChainflipSdkProvider {
     }
 
     public async getQoute(
-        srcChain: Chain, 
-        srcAsset: Asset, 
-        destChain: Chain, 
-        destAsset: Asset, 
-        amount: string, 
-        destAddress: string, 
+        params: QouteOptions
     ): Promise<QuoteResponse> {
-        const swapParams = {
-            srcChain: srcChain,
-            srcAsset: srcAsset,
-            destChain: destChain,
-            destAsset: destAsset,
-            amount: amount,
-            destAddress: destAddress,
-        }
-        return await this.sdk.getQuote(swapParams)
+        const {amount,srcAsset} = params
+        const amountInAsset = ethers.parseUnits(amount,srcAsset.data.decimals) 
+        return await this.sdk.getQuote({
+            ...params,
+            srcAsset:params.srcAsset.id,
+            destAsset:params.destAsset.id,
+            amount:amountInAsset.toString()
+        })
     }
 
     public getImmediates(

@@ -4,6 +4,7 @@ import DotPattern from "./components/ui/dot-pattern";
 import { cn } from "./lib/utils";
 import bg from "./assets/bg.svg";
 import { ChainflipProvider } from "@/provider/chainflip";
+
 function App() {
   return (
     <ChainflipProvider useTestnet={true}>

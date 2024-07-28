@@ -1,4 +1,4 @@
-import { AssetData, Chain, ChainData } from "@chainflip/sdk/swap";
+import { Asset, AssetData, Chain, ChainData } from "@chainflip/sdk/swap";
 
 export type ChainId = string;
 
@@ -12,7 +12,7 @@ export type TokenId = string;
 
 export type Token = {
   icon: string | undefined;
-  id:TokenId;
+  id:Asset;
   data:AssetData  ;
 };
 
