@@ -1,27 +1,29 @@
+import { ChainId, Token} from "@/lib/types";
 import { create } from "zustand";
+import { Nullable } from "@/lib/types/nullable";
 
 interface CentralStoreState {
-  fromChain: string;
-  fromToken: string;
+  fromChain: ChainId;
+  fromToken: Nullable<Token>;
   fromAmount: string;
-  toChain: string;
-  toToken: string;
+  toChain: ChainId;
+  toToken: Nullable<Token>;
   toAmount: string;
 
   setFromChain: (fromChain: string) => void;
-  setFromToken: (fromToken: string) => void;
+  setFromToken: (fromToken: Nullable<Token>) => void;
   setFromAmount: (fromAmount: string) => void;
   setToChain: (toChain: string) => void;
-  setToToken: (toToken: string) => void;
+  setToToken: (toToken: Nullable<Token>) => void;
   setToAmount: (toAmount: string) => void;
 }
 
 export const useCentralStore = create<CentralStoreState>((set) => ({
-  fromChain: "",
-  fromToken: "",
+  fromChain:"",
+  fromToken: null,
   fromAmount: "",
-  toChain: "",
-  toToken: "",
+  toChain:"",
+  toToken: null,
   toAmount: "",
 
   setFromChain: (fromChain) => set({ fromChain }),

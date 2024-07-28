@@ -1,12 +1,19 @@
-export type Chain = {
-  name: string;
-  icon: string;
-  tokens: Token[];
+import { AssetData, Chain, ChainData } from "@chainflip/sdk/swap";
+
+export type ChainId = string;
+
+export type ChainInfo = {
+  id:ChainId
+  data:ChainData ,
+  icon: string | undefined;
 };
+export type TokenId = string;
+
 
 export type Token = {
-  name: string;
-  icon: string;
+  icon: string | undefined;
+  id:TokenId;
+  data:AssetData  ;
 };
 
 export type TokenBoxVariant = {

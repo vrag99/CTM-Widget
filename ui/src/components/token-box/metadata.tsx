@@ -17,7 +17,7 @@ export default function Metadata({ type }: TokenBoxVariant) {
 }
 
 function AmountInUSD({ type }: TokenBoxVariant) {
-  const { fromChain, fromToken, toChain, toToken } = useCentralStore(); // Get the amount in usd from this
+  // const { fromChain, fromToken, toChain, toToken } = useCentralStore(); // Get the amount in usd from this
 
   // This is for the amount conversion
   const [fromAmountInUSD, setFromAmountInUSD] = useState(0);

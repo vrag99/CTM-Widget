@@ -7,34 +7,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ChainflipContext } from "@/context/chainflip";
 import { useCentralStore } from "@/hooks/central-store";
-import { CHAIN_DATA } from "@/lib/chain-data";
+import { TOKEN_ICONS } from "@/lib/token-icon";
 import { type Token } from "@/lib/types";
 import { type TokenBoxVariant } from "@/lib/types";
-import { useEffect } from "react";
+import { Chain } from "@chainflip/sdk/swap";
+import { useContext, useEffect, useState } from "react";
 
 export default function TokenSelector({ type }: TokenBoxVariant) {
   const { fromChain, toChain, setFromToken, setToToken } = useCentralStore();
-  const tokens: Token[] =
-    CHAIN_DATA.find(
-      (chain) => chain.name === (type === "from" ? fromChain : toChain)
-    )?.tokens || [];
+  const [tokens, setTokens] = useState<Token[]>([]);
+  const sdk = useContext(ChainflipContext);
+
+  async function fetchTokens() {
+    if (type === "from" && fromChain) {
+      const tokens = await sdk.getAwailableAssets(fromChain as Chain);
+      console.log("tokens",tokens)
+      const tokenInfo: Token[] = tokens.map((token) => ({
+        id: token.name,
+        icon: TOKEN_ICONS.find((tokenIcon) => tokenIcon.name === token.asset)?.icon,
+        data: token
+      }));
+      setTokens(tokenInfo);
+
+    } else if (type === "to" && toChain) {
+      const tokens = await sdk.getAwailableAssets(toChain as Chain);
+      const tokenInfo: Token[] = tokens.map((token) => ({
+        id: token.name,
+        icon: TOKEN_ICONS.find((tokenIcon) => tokenIcon.name === token.asset)?.icon,
+        data: token
+      }));
+      setTokens(tokenInfo);
+    }
+  }
 
   useEffect(() => {
-    setFromToken("");
-  }, [fromChain]);
+    fetchTokens()
+  }, [fromChain,toChain]);
 
-  useEffect(() => {
-    setToToken("");
-  }, [toChain]);
+  // useEffect(() => {
+  //   setToToken("");
+  // }, [toChain]);
 
   return (
     <Select
       onValueChange={(token) => {
         if (type === "from") {
-          setFromToken(token);
+          const foundToken: Token | undefined = tokens.find((t) => t.id === token);
+          setFromToken(foundToken ? foundToken : null);
         } else if (type === "to") {
-          setToToken(token);
+          const foundToken: Token | undefined = tokens.find((t) => t.id === token);
+          setToToken(foundToken ? foundToken : null);
         }
       }}
     >
@@ -46,13 +70,15 @@ export default function TokenSelector({ type }: TokenBoxVariant) {
           <SelectLabel>Tokens</SelectLabel>
           {tokens.map((token) => (
             <SelectItem
-              key={token.name}
-              value={token.name}
-              onClick={() => setFromToken(token.name)}
+              key={token.id}
+              value={token.data.name}
+              onClick={() => setFromToken(token)}
             >
               <div className="flex flex-row gap-2 items-center">
-                <img src={token.icon} className="w-5 h-5 rounded-full" />{" "}
-                {token.name}
+                {token.icon === undefined ? "" : (
+                  <img src={token.icon} className="w-5 h-5 rounded-full" />
+                )}
+                {token.data.asset}
               </div>
             </SelectItem>
           ))}

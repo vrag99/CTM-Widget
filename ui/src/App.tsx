@@ -3,9 +3,10 @@ import SwapCard from "./components/swap-card";
 import DotPattern from "./components/ui/dot-pattern";
 import { cn } from "./lib/utils";
 import bg from "./assets/bg.svg";
-
+import { ChainflipProvider } from "@/provider/chainflip";
 function App() {
   return (
+    <ChainflipProvider useTestnet={true}>
     <ThemeProvider defaultTheme="dark">
       <main
         className="w-full h-screen"
@@ -32,6 +33,7 @@ function App() {
         </div>
       </main>
     </ThemeProvider>
+    </ChainflipProvider>
   );
 }
 
