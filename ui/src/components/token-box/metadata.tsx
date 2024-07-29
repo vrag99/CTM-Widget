@@ -1,73 +1,64 @@
-// Balance, Amount in USD and slippage for the swapped token
 import { Token, TokenBoxVariant } from "@/lib/types";
 import { useCentralStore } from "@/hooks/central-store";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect } from "react";
 import { getPrice } from "@/lib/exchangeRate";
 import { useDebounce } from "@/hooks/debounce";
 import { Nullable } from "@/lib/types/nullable";
 import { getWalletBalance } from "thirdweb/wallets";
 import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from "thirdweb/react";
-import { createThirdwebClient, defineChain } from "thirdweb";
-import { Chains } from "@chainflip/sdk/swap";
+import { createThirdwebClient } from "thirdweb";
 import { ThirdWebChainsMap } from "@/lib/thirdWebChain";
 import { ChainflipContext } from "@/context/chainflip";
+import { Chains } from "@chainflip/sdk/swap";
+import { error } from "console";
+import { mainnet } from "thirdweb/chains";
+import { getBitcoinBalance } from "@/lib/bitcoin";
+
+
+declare global {
+  interface Window {
+    xfi: any;
+  }
+}
 
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
 });
-export default function Metadata({ type }: TokenBoxVariant) {
 
+export default function Metadata({ type }: TokenBoxVariant) {
   return (
-    <>
-      <div className="flex flex-row justify-between">
-        <AmountInUSD type={type} />
-        <Balance type={type} />
-      </div>
-    </>
+    <div className="flex flex-row justify-between">
+      <AmountInUSD type={type} />
+      <Balance type={type} />
+    </div>
   );
 }
 
 function AmountInUSD({ type }: TokenBoxVariant) {
-  const { fromChain, fromToken, toChain, toToken, fromAmount, toAmount } = useCentralStore(); // Get the amount in usd from this
-
-  // This is for the amount conversion
-  const [fromAmountInUSD, setFromAmountInUSD] = useState(0);
-  const [toAmountInUSD, setToAmountInUSD] = useState(0);
-  const [slippage, setSlippage] = useState(0); // in %age
-  const debounceFromAmount = useDebounce(fromAmount, 1000);
+  const { fromChain, fromToken, toChain, toToken, fromAmount, toAmount } = useCentralStore();
+  const [amountInUSD, setAmountInUSD] = useState(0);
+  const [slippage, setSlippage] = useState(0);
+  const debounceAmount = useDebounce(type === "from" ? fromAmount : toAmount, 1000);
   const [loading, setLoading] = useState(false);
-
+  const token = type === "from" ? fromToken : toToken;
+  const amount = type === "from" ? fromAmount : toAmount;
+  const chain = type === "from" ? fromChain : toChain;
   useEffect(() => {
-    async function fetchAmountInUSD() {
-
+    const fetchAmountInUSD = async () => {
       setLoading(true);
-      if (type === "from") {
-        if (
-          (Number(fromAmount) > 0) &&
-          (fromToken !== null) &&
-          (fromChain !== "")
-        ) {
-          const perToken = await getPrice(fromToken.id)
-          setFromAmountInUSD(Number(fromAmount) * perToken);
-        }
-      } else {
-        if (
-          (Number(toAmount) > 0) &&
-          (toToken !== null) &&
-          (toChain !== "")
-        ) {
-          const perToken = await getPrice(toToken.id)
-          setToAmountInUSD(Number(toAmount) * perToken);
-        }
+
+
+      if (Number(amount) > 0 && token && chain) {
+        const perToken = await getPrice(token.id);
+        setAmountInUSD(Number(amount) * perToken);
       }
       setLoading(false);
-    }
+    };
 
     fetchAmountInUSD();
-  }, [debounceFromAmount, type === "from" ? fromToken : toToken, type === "from" ? fromAmount : toAmount]);
+  }, [debounceAmount, type,token,chain]);
 
   return (
     <>
@@ -75,68 +66,66 @@ function AmountInUSD({ type }: TokenBoxVariant) {
         <AmountLoadingSkeleton />
       ) : (
         <p className="text-muted-foreground font-medium text-sm">
-          ${type === "from" ? fromAmountInUSD : toAmountInUSD}{" "}
-          {type === "to" && <span className="text-primary">({slippage}%)</span>}
+          ${amountInUSD} {type === "to" && <span className="text-primary">({slippage}%)</span>}
         </p>
       )}
     </>
   );
 }
 
-
-
 function Balance({ type }: TokenBoxVariant) {
-  // Populate balance in these states
-  const [fromBalance, setFromBalance] = useState(0);
-  const [toBalance, setToBalance] = useState(0);
-
+  const [balance, setBalance] = useState(0);
   const { fromToken, toToken, toChain, fromChain } = useCentralStore();
-  const account = useActiveAccount()
-  const chain = useActiveWalletChain()
+  const [Bitaccount, setAccount] = useState();
+  const account = useActiveAccount();
+  const chain = useActiveWalletChain();
+  const switchChain = useSwitchActiveWalletChain();
+  const sdk = useContext(ChainflipContext);
   const [loading, setLoading] = useState(false);
-  const switchChain = useSwitchActiveWalletChain()
-  const sdk = useContext(ChainflipContext)
+  const token = type === "from" ? fromToken : toToken;
+  const typeChain = type === "from" ? fromChain : toChain;
 
   useEffect(() => {
-    async function fetchBalance() {
-      if (account !== undefined && chain !== undefined) {
-        setLoading(true);
-        if (type === "from") {
-          if (fromToken !== null) {
-            const twChain = ThirdWebChainsMap.find((chain) => chain.id === fromChain && chain.isTestnet === sdk.testnet)?.twChain
-            if (twChain !== undefined) {
+    const fetchBalance = async () => {
+      if (!account || !chain) return;
 
-              if (chain !== twChain) {
-                switchChain(twChain)
-              }
-              const balance = await getWalletBalance({
-                address: account.address,
-                chain: twChain,
-                client,
-                tokenAddress: fromToken.data.contractAddress
-              })
-              setFromBalance(Number(balance.displayValue));
-            }
-          }
-        } else {
-          if (toToken !== null && toChain !== "") {
-            const twChain = ThirdWebChainsMap.find((chain) => chain.id === toChain && chain.isTestnet === sdk.testnet)?.twChain
-            if (twChain !== undefined) {
-              const balance = await getWalletBalance({
-                address: account.address,
-                chain: twChain,
-                client,
-                tokenAddress: toToken.data.contractAddress
-              })
-              setToBalance(Number(balance.displayValue));
-            }
-          }
+      setLoading(true);
+      if (token && typeChain) {
+        const twChain = ThirdWebChainsMap.find(
+          (chain) => chain.id === typeChain && chain.isTestnet === sdk.testnet
+        )?.twChain;
+
+        if (twChain) {
+          if (chain !== twChain) switchChain(twChain);
+
+          const balanceData = await getWalletBalance({
+            address: account.address,
+            chain: twChain,
+            client,
+            tokenAddress: token.data.contractAddress,
+          });
+          setBalance(Number(balanceData.displayValue));
         }
-        setLoading(false);
+
+        if(typeChain === Chains.Bitcoin){
+
+         if(window.xfi && window.xfi.bitcoin){
+            console.log(window.xfi.bitcoin)
+            window.xfi.bitcoin.changeNetwork(sdk.testnet ? "testnet" : "mainnet");
+            let bitcoinAccounts = await window.xfi.bitcoin.requestAccounts();
+            console.log(bitcoinAccounts)
+            let balance =  await getBitcoinBalance(bitcoinAccounts[0], sdk.testnet);
+            const balanceInBTC = balance / 1e8 ;
+            console.log(balanceInBTC)
+            setBalance(balanceInBTC);
+         } 
+        }
       }
-    }
+      setLoading(false);
+    };
+
     fetchBalance();
-  }, [type === "from" ? fromToken : toToken, account, type === "from" ? fromChain : toChain]);
+  }, [token, typeChain, account, chain]);
 
   return (
     <>
@@ -146,9 +135,7 @@ function Balance({ type }: TokenBoxVariant) {
         <p className="text-sm text-muted-foreground">
           Balance:{" "}
           <span className="text-foreground font-bold">
-            {type === "from" ? (fromToken !== null ?
-              `${fromBalance.toFixed(4)} ${fromToken.id}` : "--")
-              : (toToken !== null) ? `${toBalance.toFixed(4)} ${toToken.id}` : "--"}{" "}
+            {balance.toFixed(5)} {type === "from" ? fromToken?.id : toToken?.id || "--"}
           </span>
         </p>
       )}
