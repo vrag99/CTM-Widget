@@ -45,9 +45,6 @@ export default function TokenSelector({ type }: TokenBoxVariant) {
     fetchTokens()
   }, [fromChain,toChain]);
 
-  // useEffect(() => {
-  //   setToToken("");
-  // }, [toChain]);
 
   return (
     <Select

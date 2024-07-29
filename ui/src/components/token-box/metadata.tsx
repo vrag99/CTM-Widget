@@ -6,7 +6,11 @@ import { getPrice } from "@/lib/exchangeRate";
 import { useDebounce } from "@/hooks/debounce";
 import { Nullable } from "@/lib/types/nullable";
 import { getWalletBalance } from "thirdweb/wallets";
-import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from "thirdweb/react";
+import {
+  useActiveAccount,
+  useActiveWalletChain,
+  useSwitchActiveWalletChain,
+} from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { ThirdWebChainsMap } from "@/lib/thirdWebChain";
 import { ChainflipContext } from "@/context/chainflip";
@@ -15,13 +19,11 @@ import { error } from "console";
 import { mainnet } from "thirdweb/chains";
 import { getBitcoinBalance } from "@/lib/bitcoin";
 
-
 declare global {
   interface Window {
     xfi: any;
   }
 }
-
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
@@ -37,10 +39,14 @@ export default function Metadata({ type }: TokenBoxVariant) {
 }
 
 function AmountInUSD({ type }: TokenBoxVariant) {
-  const { fromChain, fromToken, toChain, toToken, fromAmount, toAmount } = useCentralStore();
+  const { fromChain, fromToken, toChain, toToken, fromAmount, toAmount } =
+    useCentralStore();
   const [amountInUSD, setAmountInUSD] = useState(0);
   const [slippage, setSlippage] = useState(0);
-  const debounceAmount = useDebounce(type === "from" ? fromAmount : toAmount, 1000);
+  const debounceAmount = useDebounce(
+    type === "from" ? fromAmount : toAmount,
+    1000
+  );
   const [loading, setLoading] = useState(false);
   const token = type === "from" ? fromToken : toToken;
   const amount = type === "from" ? fromAmount : toAmount;
@@ -48,7 +54,6 @@ function AmountInUSD({ type }: TokenBoxVariant) {
   useEffect(() => {
     const fetchAmountInUSD = async () => {
       setLoading(true);
-
 
       if (Number(amount) > 0 && token && chain) {
         const perToken = await getPrice(token.id);
@@ -58,7 +63,7 @@ function AmountInUSD({ type }: TokenBoxVariant) {
     };
 
     fetchAmountInUSD();
-  }, [debounceAmount, type,token,chain]);
+  }, [debounceAmount, type, token, chain]);
 
   return (
     <>
@@ -66,7 +71,8 @@ function AmountInUSD({ type }: TokenBoxVariant) {
         <AmountLoadingSkeleton />
       ) : (
         <p className="text-muted-foreground font-medium text-sm">
-          ${amountInUSD} {type === "to" && <span className="text-primary">({slippage}%)</span>}
+          ${amountInUSD.toFixed(2)}{" "}
+          {type === "to" && <span className="text-primary">({slippage}%)</span>}
         </p>
       )}
     </>
@@ -107,18 +113,22 @@ function Balance({ type }: TokenBoxVariant) {
           setBalance(Number(balanceData.displayValue));
         }
 
-        if(typeChain === Chains.Bitcoin){
-
-         if(window.xfi && window.xfi.bitcoin){
-            console.log(window.xfi.bitcoin)
-            window.xfi.bitcoin.changeNetwork(sdk.testnet ? "testnet" : "mainnet");
-            let bitcoinAccounts = await window.xfi.bitcoin.requestAccounts();
-            console.log(bitcoinAccounts)
-            let balance =  await getBitcoinBalance(bitcoinAccounts[0], sdk.testnet);
-            const balanceInBTC = balance / 1e8 ;
-            console.log(balanceInBTC)
+        if (typeChain === Chains.Bitcoin) {
+          if (window.xfi && window.xfi.bitcoin) {
+            console.log(window.xfi.bitcoin);
+            window.xfi.bitcoin.changeNetwork(
+              sdk.testnet ? "testnet" : "mainnet"
+            );
+            const bitcoinAccounts = await window.xfi.bitcoin.requestAccounts();
+            console.log(bitcoinAccounts);
+            const balance = await getBitcoinBalance(
+              bitcoinAccounts[0],
+              sdk.testnet
+            );
+            const balanceInBTC = balance / 1e8;
+            console.log(balanceInBTC);
             setBalance(balanceInBTC);
-         } 
+          }
         }
       }
       setLoading(false);
@@ -135,7 +145,8 @@ function Balance({ type }: TokenBoxVariant) {
         <p className="text-sm text-muted-foreground">
           Balance:{" "}
           <span className="text-foreground font-bold">
-            {balance.toFixed(5)} {type === "from" ? fromToken?.id : toToken?.id || "--"}
+            {balance.toFixed(5)}{" "}
+            {type === "from" ? fromToken?.id : toToken?.id || "--"}
           </span>
         </p>
       )}

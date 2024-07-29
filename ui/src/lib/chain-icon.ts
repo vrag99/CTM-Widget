@@ -1,9 +1,7 @@
-
 import ethereum from "@/assets/chains/ethereum.svg";
 import arbitrum from "@/assets/chains/arbitrum.svg";
 import bitcoin from "@/assets/chains/bitcoin.svg";
 import polkadot from "@/assets/chains/polkadot.svg";
-
 
 import { Chains } from "@chainflip/sdk/swap";
 
@@ -13,7 +11,7 @@ export const CHAIN_ICONS = [
     icon: ethereum,
   },
   {
-    name:Chains.Bitcoin,
+    name: Chains.Bitcoin,
     icon: bitcoin,
   },
   {
@@ -23,5 +21,5 @@ export const CHAIN_ICONS = [
   {
     name: Chains.Arbitrum,
     icon: arbitrum,
-  }
+  },
 ];

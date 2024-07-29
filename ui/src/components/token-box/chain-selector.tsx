@@ -15,35 +15,31 @@ import { Chain } from "@chainflip/sdk/swap";
 import { useContext, useEffect, useState } from "react";
 
 interface ChainSelectorProps {
-  chains: ChainInfo[],
+  chains: ChainInfo[];
   type: "from" | "to";
 }
 
 export default function ChainSelector({ chains, type }: ChainSelectorProps) {
   const [mappableChains, setMappableChains] = useState<ChainInfo[]>([]);
   const sdk = useContext(ChainflipContext);
-const { fromChain,setFromChain, setToChain } = useCentralStore();
+  const { fromChain, setFromChain, setToChain } = useCentralStore();
 
   useEffect(() => {
     if (type === "from") {
-      setMappableChains(chains)
+      setMappableChains(chains);
     } else {
-
       sdk.getAvailableChains(fromChain as Chain).then((chains) => {
         const chainsInfo: ChainInfo[] = chains.map((chain) => ({
           id: chain.chain,
           data: chain,
-          icon: CHAIN_ICONS.find((chainIcon) => chainIcon.name === chain.name)?.icon,
+          icon: CHAIN_ICONS.find((chainIcon) => chainIcon.name === chain.name)
+            ?.icon,
         }));
-        
-        
-        setMappableChains(chainsInfo)
-      })
+
+        setMappableChains(chainsInfo);
+      });
     }
-  }, [chains, fromChain])
-
-
-
+  }, [chains, fromChain]);
 
   return (
     <Select
@@ -63,11 +59,12 @@ const { fromChain,setFromChain, setToChain } = useCentralStore();
           <SelectLabel>Chains</SelectLabel>
           {mappableChains.map((chain) => (
             <SelectItem key={chain.data.chain} value={chain.data.chain}>
-              <div className="flex flex-row gap-2 items-center">{
-                chain.icon === undefined ? "" : (
+              <div className="flex flex-row gap-2 items-center">
+                {chain.icon === undefined ? (
+                  ""
+                ) : (
                   <img src={chain.icon} className="w-5 h-5 rounded-full" />
-                )
-              }{" "}
+                )}{" "}
                 {chain.data.chain}
               </div>
             </SelectItem>
