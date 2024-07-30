@@ -33,7 +33,7 @@ input[type="number"] {
     --destructive: 13 95% 35%;
     --destructive-foreground: 0 0% 100%;
     --ring: 156 99% 75%;
-    --radius: 0.8rem;
+    --radius: 0.7rem;
   }
 
   .dark {

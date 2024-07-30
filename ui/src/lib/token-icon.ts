@@ -11,7 +11,6 @@ export const TOKEN_ICONS = [
     name: Assets.BTC,
     icon: btc,
   },
-
   {
     name: Assets.ETH,
     icon: eth,

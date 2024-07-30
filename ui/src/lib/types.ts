@@ -7,6 +7,7 @@ export type ChainInfo = {
   data: ChainData;
   icon: string | undefined;
 };
+
 export type TokenId = string;
 
 export type Token = {
@@ -17,4 +18,17 @@ export type Token = {
 
 export type TokenBoxVariant = {
   type: "from" | "to";
+};
+
+export type Route = {
+  metadata: {
+    gasPrice: string;
+    time: number; // TODO: Change to Date
+  };
+  path: {
+    amount: string;
+    amountInUSD: string;
+    token: string;
+    chain: string;
+  }[];
 };

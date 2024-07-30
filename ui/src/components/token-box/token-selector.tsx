@@ -45,7 +45,6 @@ export default function TokenSelector({ type }: TokenBoxVariant) {
     fetchTokens()
   }, [fromChain,toChain]);
 
-
   return (
     <Select
       onValueChange={(token) => {
