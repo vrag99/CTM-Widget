@@ -8,19 +8,30 @@ import { Chain } from "@chainflip/sdk/swap";
 import { ethers } from "ethers";
 
 export default function TokenInput({ type }: TokenBoxVariant) {
-  const { fromAmount, toAmount, fromChain, toChain, setFromAmount, fromToken, toToken, setToAmount } = useCentralStore();
-  const debouncedFromAmount = useDebounce(fromAmount, 1000)
+  const {
+    fromAmount,
+    toAmount,
+    fromChain,
+    toChain,
+    setFromAmount,
+    fromToken,
+    toToken,
+    setToAmount,
+  } = useCentralStore();
+  const debouncedFromAmount = useDebounce(fromAmount, 1000);
   const sdk = useContext(ChainflipContext);
-
   const [loadingSwappedAmount, setLoadingSwappedAmount] = useState(false);
-
 
   useEffect(() => {
     async function fetchSwappedAmount() {
-
       setLoadingSwappedAmount(true);
-
-      if (Number(fromAmount) > 0 && (fromToken !== null) && (toToken !== null) && fromChain && toChain) {
+      if (
+        Number(fromAmount) > 0 &&
+        fromToken !== null &&
+        toToken !== null &&
+        fromChain &&
+        toChain
+      ) {
         const qoute = await sdk.getQoute({
           srcChain: fromChain as Chain,
           destChain: toChain as Chain,
@@ -28,40 +39,64 @@ export default function TokenInput({ type }: TokenBoxVariant) {
           destAsset: toToken,
           amount: fromAmount,
         });
-        const outAmount = Number(qoute.quote.egressAmount) / 10**(toToken.data.decimals);
+        const outAmount =
+          Number(qoute.quote.egressAmount) / 10 ** toToken.data.decimals;
         setToAmount(outAmount.toString());
       }
       setLoadingSwappedAmount(false);
     }
 
     fetchSwappedAmount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedFromAmount, toChain, toToken, fromChain, fromToken]);
 
   return (
     <>
       {type === "from" ? (
-        <input
-          className="bg-transparent font-medium w-full text-4xl my-4 outline-none transition-all duration-300 disabled:cursor-not-allowed disabled:text-muted-foreground disabled:brightness-50"
+        <AmountInput
           placeholder={fromChain ? "0.00" : "--"}
           type="number"
           disabled={!fromChain}
           onChange={(e) => setFromAmount(e.target.value)}
           value={fromAmount}
-          pattern="^-?[0-9]\d*\.?\d*$"
         />
       ) : loadingSwappedAmount ? (
         <SwapAmountSkeleton />
       ) : (
-        <input
-          className="bg-transparent font-medium w-full text-4xl my-4 outline-none transition-all duration-300 disabled:cursor-not-allowed disabled:text-muted-foreground disabled:brightness-50"
+        <AmountInput
           placeholder={toChain ? "0.00" : "--"}
           disabled={!toChain}
           value={toAmount}
-          pattern="^-?[0-9]\d*\.?\d*$"
           readOnly
         />
       )}
     </>
+  );
+}
+
+interface AmountInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  error?: boolean;
+  errorMessage?: string;
+}
+
+function AmountInput({
+  error = false,
+  errorMessage,
+  ...props
+}: AmountInputProps) {
+  return (
+    <div className="my-2">
+      <input
+        className={`bg-transparent font-medium w-full text-4xl py-2 outline-none transition-all duration-300 disabled:cursor-not-allowed disabled:text-muted-foreground disabled:brightness-50 ${
+          error && "border-b-2 border-b-destructive text-destructive"
+        }`}
+        pattern="^-?[0-9]\d*\.?\d*$"
+        {...props}
+      />
+      {error && errorMessage && (
+        <span className="text-destructive text-xs mt-1">{errorMessage}</span>
+      )}
+    </div>
   );
 }
 

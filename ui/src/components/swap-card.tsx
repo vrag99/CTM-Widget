@@ -36,7 +36,7 @@ export default function SwapCard() {
   return (
     <>
       <ThirdwebProvider>
-        <Card className="min-w-[450px] bg-card/20 backdrop-blur-md z-50">
+        <Card className="w-[480px] bg-card/20 backdrop-blur-md z-50">
           <CardHeader className="flex flex-row items-center mb-2 justify-between">
             <h1 className="text-3xl font-semibold">Swap</h1>
             <div className="space-x-2">
