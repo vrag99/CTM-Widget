@@ -64,7 +64,14 @@ export class ChainflipSdkProvider {
     return await this.sdk.getChains();
   }
 
+
   public async getAwailableAssets(srcChain: Chain): Promise<AssetData[]> {
-    return await this.sdk.getAssets(srcChain);
+    return await this.sdk.getAssets(srcChain)
+  }
+
+  public async executeSwap(
+    qoute: QuoteResponse,
+    poolInfo: any
+  ) {
   }
 }

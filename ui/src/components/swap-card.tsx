@@ -21,6 +21,7 @@ import RouteCard from "./route-card";
 export default function SwapCard() {
   const [availableChains, setAvailableChains] = useState<ChainInfo[]>([]);
   const sdk = useContext(ChainflipContext);
+  // const {fromChain,toChain,fromToken,toToken} = useContext(ChainflipContext);
   useEffect(() => {
     //TODO: Add loading state and error handling
     sdk.getChains().then((chains) => {
@@ -35,6 +36,7 @@ export default function SwapCard() {
   }, []);
 
   const [showRoutes, setShowRoutes] = useState(false);
+
 
   return (
     <>
