@@ -17,6 +17,7 @@ import { CHAIN_ICONS } from "@/lib/chain-icon";
 import { ChainflipContext } from "@/context/chainflip";
 import { ThirdwebProvider } from "thirdweb/react";
 import RouteCard from "./route-card";
+import { useCentralStore } from "@/hooks/central-store";
 
 export default function SwapCard() {
   const [availableChains, setAvailableChains] = useState<ChainInfo[]>([]);
@@ -36,6 +37,8 @@ export default function SwapCard() {
   }, []);
 
   const [showRoutes, setShowRoutes] = useState(false);
+
+  const {swapEnabled} =useCentralStore();
 
 
   return (
@@ -67,6 +70,7 @@ export default function SwapCard() {
                 variant={"expandIcon"}
                 iconPlacement="right"
                 Icon={ArrowUpDown}
+                disabled={!swapEnabled}
               >
                 Swap
               </Button>

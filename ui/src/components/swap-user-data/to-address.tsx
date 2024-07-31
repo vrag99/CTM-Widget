@@ -13,16 +13,32 @@ import { Spinner } from "@/components/ui/spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCentralStore } from "@/hooks/central-store";
 import { AlertTriangle } from "lucide-react";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { getExplorerLink  } from "@/lib/explorer";
+import { ChainflipContext } from "@/context/chainflip";
+import { ValidateAddress } from "@/lib/helper/validAddr";
+import { Chain } from "@chainflip/sdk/swap";
 
 export default function ToAddress() {
-  const { toChain, toToken } = useCentralStore();
+  const { toChain, toToken  } = useCentralStore();
   const isToTokenSelected = toChain && toToken !== null;
+
 
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [verified, setVerified] = useState(false);
-  const [verificationError, setVerificationError] = useState(false);
+  const [verificationError, ] = useState(false);
+  const sdk = useContext(ChainflipContext);
+
+  useEffect(() => {
+
+    if (address !== "" && toChain !== "") {
+      setIsLoading(true)
+      setVerified(ValidateAddress(address, toChain, sdk.testnet));
+      setIsLoading(false) 
+    }
+
+  }, [address, toChain])
 
   return (
     <>
@@ -84,7 +100,7 @@ export default function ToAddress() {
               >
                 <AlertTriangle className="w-4 h-4" />
                 <AlertDescription>
-                  The address you entered could not be verified.
+                  Invalid {toChain as Chain}  Address
                 </AlertDescription>
               </Alert>
             ) : verified ? (
@@ -93,11 +109,11 @@ export default function ToAddress() {
                 variant={"success"}
               >
                 <CheckCircle className="w-4 h-4" />
-                <AlertDescription>
-                  Address verified successfully.
+                <AlertDescription className="text-sm">
+                   The address is a valid {toChain} address <a href={getExplorerLink(toChain as Chain,address,sdk.testnet)}><u>here</u></a>
                 </AlertDescription>
               </Alert>
-            ) : null}
+            ): null}
           </DialogContent>
         </Dialog>
       </div>

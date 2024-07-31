@@ -13,16 +13,21 @@ import { CHAIN_ICONS } from "@/lib/chain-icon";
 import { ChainInfo } from "@/lib/types";
 import { Chain } from "@chainflip/sdk/swap";
 import { useContext, useEffect, useState } from "react";
+import { useActiveWallet } from "thirdweb/react";
 
 interface ChainSelectorProps {
   chains: ChainInfo[];
   type: "from" | "to";
 }
 
+const METAMASK_ID = "io.metamask";
+const XDEFI_ID = "io.xdefi";
+
 export default function ChainSelector({ chains, type }: ChainSelectorProps) {
   const [mappableChains, setMappableChains] = useState<ChainInfo[]>([]);
   const sdk = useContext(ChainflipContext);
   const { fromChain, setFromChain, setToChain } = useCentralStore();
+  const wallet = useActiveWallet();
 
   useEffect(() => {
     if (type === "from") {

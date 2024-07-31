@@ -1,7 +1,7 @@
 import { ChainId, Token} from "@/lib/types";
 import { create } from "zustand";
 import { Nullable } from "@/lib/types/nullable";
-
+import {QuoteResponse} from "@chainflip/sdk/swap"
 interface CentralStoreState {
   fromChain: ChainId;
   fromToken: Nullable<Token>;
@@ -9,6 +9,12 @@ interface CentralStoreState {
   toChain: ChainId;
   toToken: Nullable<Token>;
   toAmount: string;
+  swapEnabled:boolean;
+  activeAddress:string;
+  toAddress: string;
+  toAmountUSD: number;
+  fromAmountUSD: number;
+  qoute: Nullable<QuoteResponse>
 
   setFromChain: (fromChain: string) => void;
   setFromToken: (fromToken: Nullable<Token>) => void;
@@ -16,6 +22,13 @@ interface CentralStoreState {
   setToChain: (toChain: string) => void;
   setToToken: (toToken: Nullable<Token>) => void;
   setToAmount: (toAmount: string) => void;
+  setSwapEnabled: (swapEnabled: boolean) => void;
+  setActiveAddress: (activeAddress: string) => void;
+  setToAddress: (toAddress: string) => void;
+  setToAmountUSD: (toAmountUSD: number) => void;
+  setFromAmountUSD: (fromAmountUSD: number) => void;
+  setQoute: (qoute: Nullable<QuoteResponse>) => void;
+
 }
 
 export const useCentralStore = create<CentralStoreState>((set) => ({
@@ -25,11 +38,22 @@ export const useCentralStore = create<CentralStoreState>((set) => ({
   toChain:"",
   toToken: null,
   toAmount: "",
-
+  swapEnabled:false,
+  activeAddress:"",
+  toAddress: "",
+  toAmountUSD: 0,
+  fromAmountUSD: 0,
+  qoute:null,
   setFromChain: (fromChain) => set({ fromChain }),
   setFromToken: (fromToken) => set({ fromToken }),
   setFromAmount: (fromAmount) => set({ fromAmount }),
   setToChain: (toChain) => set({ toChain }),
   setToToken: (toToken) => set({ toToken }),
   setToAmount: (toAmount) => set({ toAmount }),
+  setSwapEnabled: (swapEnabled) => set({ swapEnabled }),
+  setActiveAddress: (activeAddress) => set({ activeAddress }),
+  setToAddress: (toAddress) => set({ toAddress }),
+  setToAmountUSD: (toAmountUSD) => set({ toAmountUSD }),
+  setFromAmountUSD: (fromAmountUSD) => set({ fromAmountUSD }),
+  setQoute: (qoute) => set({ qoute }),
 }));

@@ -21,6 +21,7 @@ export default function TokenInput({ type }: TokenBoxVariant) {
   const debouncedFromAmount = useDebounce(fromAmount, 1000);
   const sdk = useContext(ChainflipContext);
   const [loadingSwappedAmount, setLoadingSwappedAmount] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     async function fetchSwappedAmount() {
@@ -32,16 +33,25 @@ export default function TokenInput({ type }: TokenBoxVariant) {
         fromChain &&
         toChain
       ) {
-        const qoute = await sdk.getQoute({
-          srcChain: fromChain as Chain,
-          destChain: toChain as Chain,
-          srcAsset: fromToken,
-          destAsset: toToken,
-          amount: fromAmount,
-        });
-        const outAmount =
-          Number(qoute.quote.egressAmount) / 10 ** toToken.data.decimals;
-        setToAmount(outAmount.toString());
+        try {
+          const qoute = await sdk.getQoute({
+            srcChain: fromChain as Chain,
+            destChain: toChain as Chain,
+            srcAsset: fromToken,
+            destAsset: toToken,
+            amount: fromAmount,
+          });
+          console.log(qoute)
+          const outAmount =
+            Number(qoute.quote.egressAmount) / 10 ** toToken.data.decimals;
+          setToAmount(outAmount.toString());
+          setError(false)
+        } catch (error) {
+          ///@ts-ignore
+          console.log("er ", error.response.data.message);
+          setError(true);
+        }
+
       }
       setLoadingSwappedAmount(false);
     }
@@ -59,6 +69,7 @@ export default function TokenInput({ type }: TokenBoxVariant) {
           disabled={!fromChain}
           onChange={(e) => setFromAmount(e.target.value)}
           value={fromAmount}
+          error={error}
         />
       ) : loadingSwappedAmount ? (
         <SwapAmountSkeleton />
@@ -87,9 +98,8 @@ function AmountInput({
   return (
     <div className="my-2">
       <input
-        className={`bg-transparent font-medium w-full text-4xl py-2 outline-none transition-all duration-300 disabled:cursor-not-allowed disabled:text-muted-foreground disabled:brightness-50 ${
-          error && "border-b-2 border-b-destructive text-destructive"
-        }`}
+        className={`bg-transparent font-medium w-full text-4xl py-2 outline-none transition-all duration-300 disabled:cursor-not-allowed disabled:text-muted-foreground disabled:brightness-50 ${error && "border-b-2 border-b-destructive text-destructive"
+          }`}
         pattern="^-?[0-9]\d*\.?\d*$"
         {...props}
       />

@@ -1,10 +1,9 @@
-import { Token, TokenBoxVariant } from "@/lib/types";
+import { TokenBoxVariant } from "@/lib/types";
 import { useCentralStore } from "@/hooks/central-store";
 import { useContext, useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPrice } from "@/lib/exchangeRate";
 import { useDebounce } from "@/hooks/debounce";
-import { Nullable } from "@/lib/types/nullable";
 import { getWalletBalance } from "thirdweb/wallets";
 import {
   useActiveAccount,
@@ -15,10 +14,8 @@ import { createThirdwebClient } from "thirdweb";
 import { ThirdWebChainsMap } from "@/lib/thirdWebChain";
 import { ChainflipContext } from "@/context/chainflip";
 import { Chains } from "@chainflip/sdk/swap";
-import { error } from "console";
-import { mainnet } from "thirdweb/chains";
 import { getBitcoinBalance } from "@/lib/bitcoin";
-
+import { ApiPromise, WsProvider } from '@polkadot/api';
 declare global {
   interface Window {
     xfi: any;
@@ -39,7 +36,7 @@ export default function Metadata({ type }: TokenBoxVariant) {
 }
 
 function AmountInUSD({ type }: TokenBoxVariant) {
-  const { fromChain, fromToken, toChain, toToken, fromAmount, toAmount } =
+  const { fromChain, fromToken, toChain, toToken, fromAmount, toAmount , setFromAmountUSD,setToAmountUSD,fromAmountUSD,toAmountUSD } =
     useCentralStore();
   const [amountInUSD, setAmountInUSD] = useState(0);
   const [slippage, setSlippage] = useState(0);
@@ -51,6 +48,7 @@ function AmountInUSD({ type }: TokenBoxVariant) {
   const token = type === "from" ? fromToken : toToken;
   const amount = type === "from" ? fromAmount : toAmount;
   const chain = type === "from" ? fromChain : toChain;
+  const setter = type === "from" ? setFromAmountUSD : setToAmountUSD;
   useEffect(() => {
     const fetchAmountInUSD = async () => {
       setLoading(true);
@@ -58,12 +56,19 @@ function AmountInUSD({ type }: TokenBoxVariant) {
       if (Number(amount) > 0 && token && chain) {
         const perToken = await getPrice(token.id);
         setAmountInUSD(Number(amount) * perToken);
+        setter(Number(amount) * perToken);
       }
       setLoading(false);
     };
 
     fetchAmountInUSD();
   }, [debounceAmount, type, token, chain]);
+
+  useEffect(()=>{
+    if(fromAmountUSD> 0 && toAmountUSD > 0){
+      setSlippage(((toAmountUSD - fromAmountUSD) / fromAmountUSD) * 100)
+    }
+  },[toAmountUSD,fromAmountUSD])
 
   return (
     <>
@@ -72,7 +77,7 @@ function AmountInUSD({ type }: TokenBoxVariant) {
       ) : (
         <p className="text-muted-foreground font-medium text-sm">
           ${amountInUSD.toFixed(2)}{" "}
-          {type === "to" && <span className="text-primary">({slippage}%)</span>}
+          {type === "to" && <span className={slippage > 0 ? "text-primary":"text-destructive"}>({slippage.toFixed(2)}%)</span>}
         </p>
       )}
     </>
@@ -81,7 +86,7 @@ function AmountInUSD({ type }: TokenBoxVariant) {
 
 function Balance({ type }: TokenBoxVariant) {
   const [balance, setBalance] = useState(0);
-  const { fromToken, toToken, toChain, fromChain } = useCentralStore();
+  const { fromToken, toToken, toChain, fromChain,activeAddress } = useCentralStore();
   const [Bitaccount, setAccount] = useState();
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
@@ -90,10 +95,12 @@ function Balance({ type }: TokenBoxVariant) {
   const [loading, setLoading] = useState(false);
   const token = type === "from" ? fromToken : toToken;
   const typeChain = type === "from" ? fromChain : toChain;
+  const wsProvider = new WsProvider('wss://rpc.polkadot.io');
+
 
   useEffect(() => {
     const fetchBalance = async () => {
-      if (!account || !chain) return;
+      if (!account || !chain  || (activeAddress == "")) return;
 
       setLoading(true);
       if (token && typeChain) {
@@ -115,20 +122,25 @@ function Balance({ type }: TokenBoxVariant) {
 
         if (typeChain === Chains.Bitcoin) {
           if (window.xfi && window.xfi.bitcoin) {
-            console.log(window.xfi.bitcoin);
             window.xfi.bitcoin.changeNetwork(
               sdk.testnet ? "testnet" : "mainnet"
             );
             const bitcoinAccounts = await window.xfi.bitcoin.requestAccounts();
-            console.log(bitcoinAccounts);
             const balance = await getBitcoinBalance(
               bitcoinAccounts[0],
               sdk.testnet
             );
             const balanceInBTC = balance / 1e8;
-            console.log(balanceInBTC);
             setBalance(balanceInBTC);
           }
+        }
+
+
+        if (typeChain === Chains.Polkadot) {
+          const api = await ApiPromise.create({ provider: wsProvider });
+          const res= await api.query.system.account(activeAddress);
+          ///@ts-ignore
+          setBalance(Number(res.data.free.toString()) / 1e10);
         }
       }
       setLoading(false);
