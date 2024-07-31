@@ -22,12 +22,12 @@ export type TokenBoxVariant = {
 
 export type Route = {
   metadata: {
-    gasPrice: string;
-    time: number; // TODO: Change to Date
+    gasPrice: number;
+    time: Date;
   };
   path: {
-    amount: string;
-    amountInUSD: string;
+    amount: number;
+    amountInUSD: number;
     token: string;
     chain: string;
   }[];
