@@ -14,43 +14,43 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCentralStore } from "@/hooks/central-store";
 import { AlertTriangle } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-import { getExplorerLink  } from "@/lib/explorer";
+import { getExplorerLink } from "@/lib/explorer";
 import { ChainflipContext } from "@/context/chainflip";
 import { ValidateAddress } from "@/lib/helper/validAddr";
 import { Chain } from "@chainflip/sdk/swap";
 
 export default function ToAddress() {
-  const { toChain, toToken  } = useCentralStore();
+  const { toChain, toToken } = useCentralStore();
   const isToTokenSelected = toChain && toToken !== null;
-
 
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [verified, setVerified] = useState(false);
-  const [verificationError, ] = useState(false);
+  const [verificationError, setVerificationError] = useState(false); // added setVerificationError
   const sdk = useContext(ChainflipContext);
 
   useEffect(() => {
-
     if (address !== "" && toChain !== "") {
-      setIsLoading(true)
-      setVerified(ValidateAddress(address, toChain, sdk.testnet));
-      setIsLoading(false) 
+      setIsLoading(true);
+      const isValid = ValidateAddress(address, toChain, sdk.testnet);
+      setVerified(isValid);
+      setVerificationError(!isValid);
+      setIsLoading(false);
     }
-
-  }, [address, toChain])
+  }, [address, toChain, sdk]);
 
   return (
-    <>
-      <div className="flex flex-row justify-between items-end">
-        <p className="text-lg">To</p>
+    <div className="flex flex-row justify-between items-end">
+      <p className="text-lg">To</p>
+      {verified ? (
+        <VerifiedSwapAddress address={address} />
+      ) : (
         <Dialog>
           <DialogTrigger disabled={!isToTokenSelected}>
-            {" "}
             <Button
               disabled={!isToTokenSelected}
               className="rounded-full w-32"
-              size={"sm"}
+              size="sm"
             >
               <PlusIcon className="w-4 h-4 mr-1" />
               Add Address
@@ -73,50 +73,54 @@ export default function ToAddress() {
               />
               <Button
                 disabled={isLoading}
-                size={"icon"}
+                size="icon"
                 onClick={() => setIsLoading(true)}
                 className="transition-all duration-150"
               >
                 {isLoading ? (
-                  <>
-                    <Spinner className="w-4 h-4" />
-                  </>
+                  <Spinner className="w-4 h-4" />
                 ) : verified ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                  </>
+                  <Check className="w-4 h-4" />
                 ) : (
-                  <>
-                    <PlusIcon className="w-4 h-4" />
-                  </>
+                  <PlusIcon className="w-4 h-4" />
                 )}
               </Button>
             </div>
-
             {verificationError ? (
               <Alert
                 className="transition-all duration-150"
-                variant={"destructive"}
+                variant="destructive"
               >
                 <AlertTriangle className="w-4 h-4" />
-                <AlertDescription>
-                  Invalid {toChain as Chain}  Address
-                </AlertDescription>
+                <AlertDescription>Invalid {toChain} Address</AlertDescription>
               </Alert>
             ) : verified ? (
-              <Alert
-                className="transition-all duration-150"
-                variant={"success"}
-              >
+              <Alert className="transition-all duration-150" variant="success">
                 <CheckCircle className="w-4 h-4" />
                 <AlertDescription className="text-sm">
-                   The address is a valid {toChain} address <a href={getExplorerLink(toChain as Chain,address,sdk.testnet)}><u>here</u></a>
+                  The address is a valid {toChain} address{" "}
+                  <a href={getExplorerLink(toChain as Chain, address, sdk.testnet)}>
+                    <u>here</u>
+                  </a>
                 </AlertDescription>
               </Alert>
-            ): null}
+            ) : null}
           </DialogContent>
         </Dialog>
-      </div>
-    </>
+      )}
+    </div>
+  );
+}
+
+function VerifiedSwapAddress({ address }: { address: string }) {
+  const truncatedAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+  return (
+    <Button
+      className="w-32 rounded-full border border-accent bg-gradient-to-tr from-secondary via-muted to-accent shadow-lg text-foreground"
+      variant={"linkHover2"}
+      size={"sm"}
+    >
+      {truncatedAddress}
+    </Button>
   );
 }

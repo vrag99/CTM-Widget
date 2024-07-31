@@ -1,6 +1,6 @@
 import { type Route } from "@/lib/types";
 import { FuelIcon, ClockIcon } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+
 export default function Metadata({
   metadata,
 }: {

@@ -1,6 +1,5 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import SwapCard from "@/components/swap-card";
-import RouteCard from "@/components/route-card";
 import bg from "@/assets/bg.png";
 import { ChainflipProvider } from "@/provider/chainflip";
 
