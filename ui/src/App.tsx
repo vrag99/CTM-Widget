@@ -2,6 +2,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import SwapCard from "@/components/swap-card";
 import bg from "@/assets/bg.png";
 import { ChainflipProvider } from "@/provider/chainflip";
+import { ThorChainProvider } from "./provider/thorchain";
 
 function App() {
   return (
@@ -17,8 +18,9 @@ function App() {
           }}
         >
           <div className="w-full h-full flex flex-row gap-4 justify-center items-center just bg-card/40">
-            <SwapCard />
-
+            <ThorChainProvider>
+              <SwapCard />
+            </ThorChainProvider>
           </div>
         </main>
       </ThemeProvider>

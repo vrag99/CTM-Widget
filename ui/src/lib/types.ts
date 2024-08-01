@@ -20,6 +20,8 @@ export type TokenBoxVariant = {
   type: "from" | "to";
 };
 
+type SDK = "Chainflip" | "Thorchain";
+
 export type Route = {
   metadata: {
     gasPrice: number;
@@ -31,4 +33,5 @@ export type Route = {
     token: string;
     chain: string;
   }[];
+  sdk: SDK;
 };

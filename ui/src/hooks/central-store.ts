@@ -1,7 +1,8 @@
-import { ChainId, Token} from "@/lib/types";
+import { ChainId, Route, Token} from "@/lib/types";
 import { create } from "zustand";
 import { Nullable } from "@/lib/types/nullable";
-import {QuoteResponse} from "@chainflip/sdk/swap"
+import {DepositAddressResponse, QuoteResponse} from "@chainflip/sdk/swap"
+import { QouteThorChain } from "@/lib/types/qouteThorchain";
 interface CentralStoreState {
   fromChain: ChainId;
   fromToken: Nullable<Token>;
@@ -16,6 +17,11 @@ interface CentralStoreState {
   fromAmountUSD: number;
   qoute: Nullable<QuoteResponse>;
   walletConnected: boolean;
+  loading: boolean;
+  routes: Route[];
+  thorchainQoute: Nullable<QouteThorChain>;
+  depositAddressResponse:Nullable<DepositAddressResponse>;
+  destinationAddress: string;
 
   setFromChain: (fromChain: string) => void;
   setFromToken: (fromToken: Nullable<Token>) => void;
@@ -30,7 +36,11 @@ interface CentralStoreState {
   setFromAmountUSD: (fromAmountUSD: number) => void;
   setQoute: (qoute: Nullable<QuoteResponse>) => void;
   setWalletConnected: (walletConnected: boolean) => void;
-
+  setLoading: (loading: boolean) => void;
+  setRoutes: (routes: Route[]) => void;
+  setThorchainQoute: (thorchainQoute: Nullable<QouteThorChain>) => void;
+  setDepositAddressResponse: (depositAddressResponse:Nullable<DepositAddressResponse>) => void;
+  setDestinationAddress: (destinationAddress: string) => void;
 }
 
 export const useCentralStore = create<CentralStoreState>((set) => ({
@@ -47,6 +57,13 @@ export const useCentralStore = create<CentralStoreState>((set) => ({
   fromAmountUSD: 0,
   qoute:null,
   walletConnected: false,
+  loading: false,
+  routes: [],
+  isThorchain: false,
+  thorchainQoute:null,
+  depositAddressResponse:null,
+  destinationAddress: "",
+
   setFromChain: (fromChain) => set({ fromChain }),
   setFromToken: (fromToken) => set({ fromToken }),
   setFromAmount: (fromAmount) => set({ fromAmount }),
@@ -60,4 +77,10 @@ export const useCentralStore = create<CentralStoreState>((set) => ({
   setFromAmountUSD: (fromAmountUSD) => set({ fromAmountUSD }),
   setQoute: (qoute) => set({ qoute }),
   setWalletConnected: (walletConnected) => set({ walletConnected }),
+  setLoading: (loading) => set({ loading }),
+  setRoutes: (routes) => set({ routes }),
+  setThorchainQoute: (thorchainQoute) => set({ thorchainQoute }),
+  setDepositAddressResponse: (depositAddressResponse) => set({ depositAddressResponse }),
+  setDestinationAddress: (destinationAddress) => set({ destinationAddress }),
+
 }));

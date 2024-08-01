@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { useContext, useEffect, useState } from "react";
 import { Check, AlertTriangle } from "lucide-react";
-
+import { useCentralStore } from "@/hooks/central-store";
+import { ethers, Signer } from "ethers";
 interface ProgressState {
   name: string;
   state: string;
   status: "pending" | "loading" | "completed" | "failed";
 }
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 const PROGRESS_STATES: ProgressState[] = [
   {
     name: "Waiting for deposit",
@@ -30,7 +30,7 @@ const PROGRESS_STATES: ProgressState[] = [
   {
     name: "Scheduling funds for the destination address",
     state: "EGRESS_SCHEDULED",
-    status: "failed",
+    status: "pending",
   },
   {
     name: "Requesting a broadcast to send you the funds",
@@ -53,11 +53,36 @@ interface SwapProgressProps {
   open: boolean;
   setOpen: (open: boolean) => void;
 }
+import { client } from "@/components/swap-user-data/from-address";
+
+
+import { ethers6Adapter } from "thirdweb/adapters/ethers6";
+import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
+import { Assets, Chains } from "@chainflip/sdk/swap";
+import { ThorchainContext } from "@/context/thorchain";
+import {assetToBase , assetAmount} from "@xchainjs/xchain-util"
+import { ChainflipContext } from "@/context/chainflip";
+type Status = "DEPOSIT_RECEIVED" | "SWAP_EXECUTED" | "EGRESS_SCHEDULED" | "BROADCAST_REQUESTED" | "BROADCASTED" | "COMPLETE" | "AWAITING_DEPOSIT" | "BROADCAST_ABORTED" | "FAILED";
+
+
+declare global {
+  interface Window {
+    xfi: any;
+  }
+}
 
 export default function SwapProgress(props: SwapProgressProps) {
+
+
   const totalStates = PROGRESS_STATES.length;
   const [currentStep, setCurrentStep] = useState(0);
   const currentProgress = Math.floor((currentStep / totalStates) * 100);
+  const { fromToken, fromChain, depositAddressResponse,activeAddress } = useCentralStore()
+  const [signer, setSinger] = useState<Signer | null>(null)
+  const [status, setStatus] = useState<Status>("AWAITING_DEPOSIT");
+  const chain = useActiveWalletChain()
+  const account = useActiveAccount()
+
 
   // Utility functions for navigating stepper
   const nextStep = () => {
@@ -83,12 +108,124 @@ export default function SwapProgress(props: SwapProgressProps) {
       PROGRESS_STATES[currentStep].status = "failed";
     }
   }
+  const sdk = useContext(ChainflipContext);
+  function exponentialBackoff(initialInterval: number, exponent = 2, maxIterations = 1024, channelId: string) {
+    let interval = initialInterval;
+    let iteration = 0;
+
+    const intervalId = setInterval(async () => {
+      // Exponentially increase the interval
+      interval *= exponent;
+      const currentStatus = await sdk.getStatus(channelId);
+      console.log(currentStatus)
+      setStatus(currentStatus)
+      // Stop after reaching maxIterations (optional)
+      if (iteration >= maxIterations) {
+        clearInterval(intervalId);
+        console.log('Exponential backoff stopped after reaching max iterations.');
+      }
+    }, interval);
+
+    // Optionally return intervalId if you need to clear the interval externally
+    return intervalId;
+  }
+
+
+  const swap = async () => {
+    console.log(swap)
+    console.log(depositAddressResponse)
+    if (fromToken === null || fromChain === null) return;
+    if (depositAddressResponse) {
+      resetProgress()
+      exponentialBackoff(2000, 2, 10240, depositAddressResponse.depositChannelId)
+      if (fromChain === Chains.Ethereum || fromChain === Chains.Arbitrum) {
+        if (chain && account) {
+          const signer: Signer = ethers6Adapter.signer.toEthers({
+            client,
+            chain,
+            account
+          })
+          if (fromToken.id === Assets.ETH) {
+            try {
+              const tx = await signer.sendTransaction({
+                to: depositAddressResponse.depositAddress,
+                value: depositAddressResponse.amount
+              })
+              const reciepent = await tx.wait()
+              const confirmations = await reciepent?.confirmations();
+              if (reciepent === null) {
+                errorStep()
+              } else if (confirmations === 0) {
+                errorStep()
+              }
+            } catch (error) {
+              errorStep()
+            }
+          }
+        }
+      } else if (fromChain === Chains.Bitcoin) {
+        const feeRate =  depositAddressResponse.channelOpeningFee;
+        const from = activeAddress;
+        const amount = assetToBase(assetAmount(Number(depositAddressResponse.amount)/1e8,8));
+        const reciepent = depositAddressResponse.depositAddress;
+        window.xfi.bitcoin.request(
+          {
+            method: "transfer",
+            params: [
+              {
+                "feeRate":10,
+                "from":from,
+                "reciepent":reciepent,
+                "amount":amount,
+                "memo":""
+              },
+            ],
+          },
+          (error: any, result: any) => {
+            console.debug(error, result);
+            if (error) errorStep()
+            console.log(result)
+          },
+        );
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (status === "AWAITING_DEPOSIT") {
+      nextStep()
+    } else if (status === "DEPOSIT_RECEIVED") {
+      nextStep()
+    } else if (status === "SWAP_EXECUTED") {
+      nextStep()
+    } else if (status === "EGRESS_SCHEDULED") {
+      nextStep()
+    } else if (status === "BROADCAST_REQUESTED") {
+      nextStep()
+    } else if (status === "BROADCASTED") {
+      nextStep()
+    } else if (status === "BROADCAST_ABORTED") {
+      errorStep()
+    } else if (status === "COMPLETE") {
+      nextStep()
+    } else if (status === "FAILED") {
+      errorStep()
+    }
+  }, [status])
+
+
+
+  useEffect(() => {
+    swap()
+  }, [depositAddressResponse])
+
+
+
 
   return (
     <Card
-      className={`h-[22rem] absolute bg-card/90 backdrop-blur z-50 border-t transition-all duration-500 ease-in-out ${
-        props.open && "-translate-y-[100%]"
-      }`}
+      className={`h-[22rem] absolute bg-card/90 backdrop-blur z-50 border-t transition-all duration-500 ease-in-out ${props.open && "-translate-y-[100%]"
+        }`}
     >
       <CardHeader className="flex flex-row items-center justify-between gap-4">
         <CardTitle>Swap in Progress</CardTitle>
@@ -118,6 +255,7 @@ export default function SwapProgress(props: SwapProgressProps) {
     </Card>
   );
 }
+
 
 function ProgressState({ name, status = "pending" }: ProgressState) {
   const statusStyles = {
