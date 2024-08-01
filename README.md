@@ -1,6 +1,4 @@
-<h1><Center>CTM Widget<h1></Center>
-
-
+<h1><Center>CTM Widget</Center></h1>
 
 
 <Center>Introducing CTM Widget: your go-to widget. Make your applications cross-chain with less than 10 lines of code!!

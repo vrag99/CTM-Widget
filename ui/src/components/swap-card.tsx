@@ -214,5 +214,3 @@ export default function SwapCard() {
     </>
   );
 }
-
-// Selected route ka component, abhi idhar hai, place krna hai dhang se.

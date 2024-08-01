@@ -1,86 +1,49 @@
-# React + Vite + TypeScript Template (react-vite-ui)
+<h1><Center>CTM Widget</Center></h1>
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Dan5py/react-vite-ui/blob/main/LICENSE)
 
-A React + Vite template powered by shadcn/ui.
+<Center>Introducing CTM Widget: your go-to widget. Make your applications cross-chain with less than 10 lines of code!!
 
-## 🎉 Features
 
-- **React** - A JavaScript library for building user interfaces.
-- **Vite** - A fast, opinionated frontend build tool.
-- **TypeScript** - A typed superset of JavaScript that compiles to plain JavaScript.
-- **Tailwind CSS** - A utility-first CSS framework.
-- **Tailwind Prettier Plugin** - A Prettier plugin for formatting Tailwind CSS classes.
-- **ESLint** - A pluggable linting utility for JavaScript and TypeScript.
-- **PostCSS** - A tool for transforming CSS with JavaScript.
-- **Autoprefixer** - A PostCSS plugin to parse CSS and add vendor prefixes.
-- **shadcn/ui** - Beautifully designed components that you can copy and paste into your apps.
+For more detailed explanation , have a look at our <a href="https://flipwidget.gitbook.io/ctm-widget">Wonderful Docs</a></Center>
+## What We Are
 
-## ⚙️ Prerequisites
+CTM Widget is engineered to be the definitive swap integration tool for a diverse range of projects from DeFi to gaming. By aggregating liquidity and functionalities from Chainflip, Thorchain, and Maya Protocol, it ensures optimal trading routes, minimal slippage, and the best possible rates for users. This widget is ideal for:
 
-Make sure you have the following installed on your development machine:
 
-- Node.js (version 16 or above)
-- pnpm (package manager)
+<img src="./images/3.jpeg"></img>
+<img src="./images/2.jpeg"></img>
 
-## 🚀 Getting Started
+- **DeFi Platforms:** Enhance decentralized exchanges (DEXs) with state-of-the-art swap capabilities.
+- **dApps:** Integrate advanced swap functionalities to provide smooth user experiences within decentralized applications.
+- **Cross-Chain Solutions:** Simplify asset trading across different blockchains.
 
-Follow these steps to get started with the react-vite-ui template:
+## Technical Highlights
 
-1. Clone the repository:
+### Protocol Aggregation
 
-   ```bash
-   git clone https://github.com/dan5py/react-vite-ui.git
-   ```
+- **Chainflip:** Provides a decentralized exchange mechanism for native cross-chain swaps.
+- **Thorchain:** Enhances liquidity provision and ensures high availability across asset pools.
+- **Maya Protocol:** Facilitates cross-chain communication (CCM) and integrates with Chainflip to enable efficient asset swapping.
 
-2. Navigate to the project directory:
+<img src="./images/1.jpeg"></img>
 
-   ```bash
-   cd react-vite-ui
-   ```
+### Smooth User Experience (UX)
 
-3. Install the dependencies:
+- **Intuitive Interface:** A clean and straightforward UI for effortless swaps.
+- **Real-Time Data:** Provides up-to-date information on swap rates, liquidity, and transaction status.
 
-   ```bash
-   pnpm install
-   ```
+### High Compatibility
 
-4. Start the development server:
+- **SDK Integration:** Easily integrates into existing platforms with minimal development overhead.
+- **Customizable UI:** Adaptable to match the look and feel of any host application.
+- **Multi-Chain Support:** Works seamlessly across different blockchain ecosystems, leveraging the underlying protocols.
 
-   ```bash
-   pnpm dev
-   ```
+## Dive into the World of Cross Chain
 
-## 📜 Available Scripts
+CTM Widget is set to revolutionize swap integrations in DeFi projects. By offering a smooth UX, high compatibility, and advanced liquidity management, it is poised to become an indispensable tool for DeFi platforms, wallets, dApps, aggregators, and cross-chain solutions. 
 
-- pnpm dev - Starts the development server.
-- pnpm build - Builds the production-ready code.
-- pnpm lint - Runs ESLint to analyze and lint the code.
-- pnpm preview - Starts the Vite development server in preview mode.
+Integrate CTM Widget today and unlock the full potential of seamless, efficient, and user-friendly swaps.
 
-## 📂 Project Structure
 
-The project structure follows a standard React application layout:
 
-```python
-react-vite-ui/
-  ├── node_modules/      # Project dependencies
-  ├── public/            # Public assets
-  ├── src/               # Application source code
-  │   ├── components/    # React components
-  │   │   └── ui/        # shadc/ui components
-  │   ├── styles/        # CSS stylesheets
-  │   ├── lib/           # Utility functions
-  │   ├── App.tsx        # Application entry point
-  │   └── index.tsx      # Main rendering file
-  ├── .eslintrc.json     # ESLint configuration
-  ├── index.html         # HTML entry point
-  ├── postcss.config.js  # PostCSS configuration
-  ├── tailwind.config.js # Tailwind CSS configuration
-  ├── tsconfig.json      # TypeScript configuration
-  └── vite.config.ts     # Vite configuration
-```
 
-## 📄 License
-
-This project is licensed under the MIT License. See the [LICENSE](https://choosealicense.com/licenses/mit/) file for details.
