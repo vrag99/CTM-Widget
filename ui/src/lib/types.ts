@@ -23,7 +23,7 @@ export type TokenBoxVariant = {
 export type Route = {
   metadata: {
     gasPrice: number;
-    time: Date;
+    time: number;
   };
   path: {
     amount: number;

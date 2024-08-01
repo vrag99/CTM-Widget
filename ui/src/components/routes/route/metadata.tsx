@@ -6,6 +6,15 @@ export default function Metadata({
 }: {
   metadata: Route["metadata"];
 }) {
+  function secondsToTime(e:number){
+    const h = Math.floor(e / 3600).toString().padStart(2,'0'),
+          m = Math.floor(e % 3600 / 60).toString().padStart(2,'0'),
+          s = Math.floor(e % 60).toString().padStart(2,'0');
+    if(h==='00'){
+      return m + ':' + s;
+    } 
+    return h + ':' + m + ':' + s;
+}
   return (
     <div className="flex gap-2 text-xs">
       <div className="flex flex-row gap-1 pr-2 items-center border-r border-muted-foreground">
@@ -19,7 +28,7 @@ export default function Metadata({
           <ClockIcon className="h-4 w-4" />
         </p>
         <p>
-          {metadata.time.getMinutes()}:{metadata.time.getSeconds()}
+         {secondsToTime(metadata.time)}
         </p>
       </div>
     </div>

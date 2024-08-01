@@ -14,7 +14,8 @@ interface CentralStoreState {
   toAddress: string;
   toAmountUSD: number;
   fromAmountUSD: number;
-  qoute: Nullable<QuoteResponse>
+  qoute: Nullable<QuoteResponse>;
+  walletConnected: boolean;
 
   setFromChain: (fromChain: string) => void;
   setFromToken: (fromToken: Nullable<Token>) => void;
@@ -28,6 +29,7 @@ interface CentralStoreState {
   setToAmountUSD: (toAmountUSD: number) => void;
   setFromAmountUSD: (fromAmountUSD: number) => void;
   setQoute: (qoute: Nullable<QuoteResponse>) => void;
+  setWalletConnected: (walletConnected: boolean) => void;
 
 }
 
@@ -44,6 +46,7 @@ export const useCentralStore = create<CentralStoreState>((set) => ({
   toAmountUSD: 0,
   fromAmountUSD: 0,
   qoute:null,
+  walletConnected: false,
   setFromChain: (fromChain) => set({ fromChain }),
   setFromToken: (fromToken) => set({ fromToken }),
   setFromAmount: (fromAmount) => set({ fromAmount }),
@@ -56,4 +59,5 @@ export const useCentralStore = create<CentralStoreState>((set) => ({
   setToAmountUSD: (toAmountUSD) => set({ toAmountUSD }),
   setFromAmountUSD: (fromAmountUSD) => set({ fromAmountUSD }),
   setQoute: (qoute) => set({ qoute }),
+  setWalletConnected: (walletConnected) => set({ walletConnected }),
 }));

@@ -11,6 +11,7 @@ import { ChainflipContext } from "@/context/chainflip";
 import { useCentralStore } from "@/hooks/central-store";
 import { CHAIN_ICONS } from "@/lib/chain-icon";
 import { ChainInfo } from "@/lib/types";
+import { WALLETS } from "@/lib/walletProvider";
 import { Chain } from "@chainflip/sdk/swap";
 import { useContext, useEffect, useState } from "react";
 import { useActiveWallet } from "thirdweb/react";
@@ -26,9 +27,9 @@ const XDEFI_ID = "io.xdefi";
 export default function ChainSelector({ chains, type }: ChainSelectorProps) {
   const [mappableChains, setMappableChains] = useState<ChainInfo[]>([]);
   const sdk = useContext(ChainflipContext);
-  const { fromChain, setFromChain, setToChain } = useCentralStore();
+  const { fromChain, setFromChain, setToChain ,setWalletConnected,walletConnected} = useCentralStore();
   const wallet = useActiveWallet();
-
+  const activeWallet = wallet?.id;
   useEffect(() => {
     if (type === "from") {
       setMappableChains(chains);
@@ -51,6 +52,10 @@ export default function ChainSelector({ chains, type }: ChainSelectorProps) {
       onValueChange={(chain) => {
         if (type === "from") {
           setFromChain(chain);
+          const wallet = WALLETS[chain].id;
+          if(activeWallet && !wallet.includes(activeWallet)){
+            setWalletConnected(false);
+          }
         } else if (type === "to") {
           setToChain(chain);
         }

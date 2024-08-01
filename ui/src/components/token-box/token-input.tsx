@@ -17,6 +17,7 @@ export default function TokenInput({ type }: TokenBoxVariant) {
     fromToken,
     toToken,
     setToAmount,
+    setQoute
   } = useCentralStore();
   const debouncedFromAmount = useDebounce(fromAmount, 1000);
   const sdk = useContext(ChainflipContext);
@@ -41,7 +42,7 @@ export default function TokenInput({ type }: TokenBoxVariant) {
             destAsset: toToken,
             amount: fromAmount,
           });
-          console.log(qoute)
+          setQoute(qoute);
           const outAmount =
             Number(qoute.quote.egressAmount) / 10 ** toToken.data.decimals;
           setToAmount(outAmount.toString());

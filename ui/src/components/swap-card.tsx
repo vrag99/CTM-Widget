@@ -16,11 +16,12 @@ import { ChainInfo } from "@/lib/types";
 import { useContext, useEffect, useState } from "react";
 import { CHAIN_ICONS } from "@/lib/chain-icon";
 import { ChainflipContext } from "@/context/chainflip";
-import { ThirdwebProvider } from "thirdweb/react";
+import { ThirdwebProvider, useActiveAccount, useActiveWallet, useConnectModal, useDisconnect } from "thirdweb/react";
 import RouteCard from "./routes";
 import { type Route } from "@/lib/types";
 import { UI_TOKEN_ICONS, UI_CHAIN_ICONS } from "@/lib/ui-icon-mappings";
 import { ChevronRight } from "lucide-react";
+
 
 export default function SwapCard() {
   const [availableChains, setAvailableChains] = useState<ChainInfo[]>([]);
@@ -43,14 +44,7 @@ export default function SwapCard() {
     {
       metadata: {
         gasPrice: 0.00018,
-        time: new Date(
-          0,
-          0,
-          0,
-          0,
-          Math.floor(1690726456000 / 60000) % 60,
-          Math.floor(1690726456000 / 1000) % 60
-        ),
+        time: 500,
       },
       path: [
         {
@@ -70,14 +64,7 @@ export default function SwapCard() {
     {
       metadata: {
         gasPrice: 0.00009,
-        time: new Date(
-          0,
-          0,
-          0,
-          0,
-          Math.floor(1690726456000 / 60000) % 60,
-          Math.floor(1690726456000 / 1000) % 60
-        ),
+        time: 600,
       },
       path: [
         {
@@ -97,14 +84,7 @@ export default function SwapCard() {
     {
       metadata: {
         gasPrice: 0.00036,
-        time: new Date(
-          0,
-          0,
-          0,
-          0,
-          Math.floor(1690726456000 / 60000) % 60,
-          Math.floor(1690726456000 / 1000) % 60
-        ),
+        time: 0
       },
       path: [
         {
@@ -135,7 +115,7 @@ export default function SwapCard() {
     },
   ];
 
-  const { fromChain, fromAmount, fromToken, toChain, toToken } =
+  const { fromChain, fromAmount, fromToken, toChain, toToken, activeAddress, setActiveAddress, setSwapEnabled, qoute } =
     useCentralStore();
 
   // Route states
@@ -143,18 +123,151 @@ export default function SwapCard() {
   const [openRouteCard, setOpenRouteCard] = useState(false);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
   const [isRouteLoading, setIsRouteLoading] = useState(false);
+  const [selectedRoutes, setSelectedRoutes] = useState<Route | null>(null)
 
-  const {swapEnabled} =useCentralStore();
+  const { swapEnabled, walletConnected } = useCentralStore();
+  // const activeWallet =  useActiveWallet();
+  // const {disconnect} = useDisconnect() 
+  // const {connect} = useConnectModal(); 
+  // const activeAccount = useActiveAccount();
 
+  // async function ConnectWallet() {
+  //   if (fromChain !== "" && activeWallet !== undefined) {
+  //     if (fromChain === Chains.Bitcoin) {
+  //       if (activeWallet.id !== "io.xdefi") {
+  //         disconnect(activeWallet);
+  //         const wallets = [createWallet("io.xdefi")];
+  //         await connect({ client, wallets });
+  //       }
+  //       if (window.xfi && window.xfi.bitcoin) {
+  //         window.xfi.bitcoin.changeNetwork(
+  //           sdk.testnet ? "testnet" : "mainnet"
+  //         );
+  //         const bitcoinAccounts = await window.xfi.bitcoin.requestAccounts();
+  //         if (bitcoinAccounts[0]) setActiveAddress(bitcoinAccounts[0]);
+  //       }
+  //     } else if (fromChain === Chains.Ethereum || fromChain === Chains.Arbitrum) {
+  //       setActiveAddress(activeAccount?.address ? activeAccount.address : "");
+  //     } else if (fromChain === Chains.Polkadot) {
+
+  //       if (activeWallet.id !== "app.subwallet") {
+  //         disconnect(activeWallet);
+  //         const wallets = [createWallet("app.subwallet")];
+  //         await connect({ client, wallets });
+  //       }
+  //       const extensions = await web3Enable("My dapp");
+
+  //       if (extensions.length > 0) {
+  //         setSwapEnabled(false)
+  //       }
+
+  //       const allAccounts = await web3Accounts();
+  //       if (allAccounts.length > 0) {
+  //         setActiveAddress(allAccounts[0].address);
+  //       }
+  //     }
+  //   }
+  // }
+  // console.log(walletConnected)
+  async function convertToRoute(qoute: QuoteResponse): Promise<Route> {
+    const data = qoute.quote;
+    const fee = qoute.quote.includedFees.map(async (fee) => {
+      const tokenData = await sdk.getAwailableAssets(fee.chain);
+      const token = tokenData.find((token) => token.asset === fee.asset)
+      if (!token) return 0
+      const amount = (Number(fee.amount) / (10 ** token.decimals)) * (await getPrice(fee.asset))
+      return amount
+
+    }).reduce(async (a, b) => (await a) + (await b))
+    const metadata = {
+      gasPrice: await fee,
+      time: data.estimatedDurationSeconds
+    }
+    const path: {
+      amount: number;
+      amountInUSD: number;
+      token: string;
+      chain: string;
+    }[] = [];
+
+    for (const [index, pool] of data.poolInfo.entries()) {
+      const baseAssetPrice = await getPrice(pool.baseAsset.asset);
+      const quoteAssetPrice = await getPrice(pool.quoteAsset.asset);
+      const baseAssetTokenData = (await sdk.getAwailableAssets(pool.baseAsset.chain)).find((token) => token.asset === pool.baseAsset.asset);
+      const quoteAssetTokenData = (await sdk.getAwailableAssets(pool.quoteAsset.chain)).find((token) => token.asset === pool.quoteAsset.asset);
+      if (baseAssetTokenData && quoteAssetTokenData) {
+        const quoteAssetAmount = Number(data.intermediateAmount) / (10 ** quoteAssetTokenData.decimals);
+        let baseAssetAmount = 0; // Assuming this amount represents the intermediate amount in quote asset
+        if (index === 0) {
+          baseAssetAmount = Number(qoute.amount) / (10 ** baseAssetTokenData.decimals);
+        } else if (index === data.poolInfo.length - 1) {
+          baseAssetAmount = Number(data.egressAmount) / (10 ** baseAssetTokenData.decimals);
+        }
+        if (index % 2 === 0) {
+          path.push(
+            {
+              amount: baseAssetAmount,
+              amountInUSD: (baseAssetAmount * baseAssetPrice),
+              token: pool.baseAsset.asset,
+              chain: pool.baseAsset.chain,
+            },
+            {
+              amount: quoteAssetAmount,
+              amountInUSD: quoteAssetAmount * quoteAssetPrice,
+              token: pool.quoteAsset.asset,
+              chain: pool.quoteAsset.chain,
+            }
+          );
+        } else {
+          path.push(
+            {
+              amount: Number(quoteAssetAmount.toFixed(2)),
+              amountInUSD: Number((quoteAssetAmount * quoteAssetPrice).toFixed(2)),
+              token: pool.quoteAsset.asset,
+              chain: pool.quoteAsset.chain,
+            },
+            {
+              amount: Number(baseAssetAmount.toFixed(2)),
+              amountInUSD: Number((baseAssetAmount * baseAssetPrice).toFixed(2)),
+              token: pool.baseAsset.asset,
+              chain: pool.baseAsset.chain,
+            }
+          );
+        }
+      }
+
+    }
+
+    return {
+      metadata,
+      path: removeConsecutiveDuplicates(path),
+    };
+  }
+  const qouteToRoute = async () => {
+    if (qoute !== null) {
+      setIsRouteLoading(true)
+      setSwapEnabled(true)
+      console.log(qoute)
+
+      const route = await convertToRoute(qoute)
+      console.log(route)
+      setSelectedRoutes(route)
+      setIsRouteLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    qouteToRoute()
+
+  }, [qoute])
 
   return (
     <>
       <ThirdwebProvider>
         <div className="*:w-[420px] relative overflow-hidden">
           <Card
-            className={`bg-card/20 min-h-[44rem] max-h-[50rem] backdrop-blur-md z-50 transition-all duration-500 ${
-              openRouteCard && "brightness-50"
-            }`}
+            className={`bg-card/20 min-h-[44rem] max-h-[50rem] backdrop-blur-md z-50 transition-all duration-500 ${openRouteCard && "brightness-50"
+              }`}
           >
             <CardHeader className="flex flex-row items-center mb-2 justify-between">
               <CardTitle>Swap</CardTitle>
@@ -174,23 +287,38 @@ export default function SwapCard() {
                   <SelectedRouteLoadingSkeleton />
                 ) : (
                   <SelectedRoute
-                    route={sampleRoutes[selectedRouteIndex]}
+                    route={selectedRoutes ? selectedRoutes : sampleRoutes[selectedRouteIndex]}
                     openRouteCard={openRouteCard}
                     setOpenRouteCard={setOpenRouteCard}
                   />
                 ))}
             </CardContent>
             <CardFooter>
-              <Button
-                className="w-full text-base"
-                size={"lg"}
-                variant={"expandIcon"}
-                iconPlacement="right"
-                Icon={ArrowUpDown}
-                disabled={!swapEnabled}
-              >
-                Swap
-              </Button>
+
+              {!walletConnected ? (
+                <Button
+                  className="w-full text-base"
+                  size={"lg"}
+                  variant={"expandIcon"}
+                  iconPlacement="right"
+                  Icon={ArrowUpDown}
+                // onClick={ConnectWallet}
+                >
+                  Connect Wallet
+                </Button>
+
+              ) : (
+                <Button
+                  className="w-full text-base"
+                  size={"lg"}
+                  variant={"expandIcon"}
+                  iconPlacement="right"
+                  Icon={ArrowUpDown}
+                  disabled={!swapEnabled}
+                >
+                  Swap
+                </Button>
+              )}
             </CardFooter>
           </Card>
           <RouteCard
@@ -216,6 +344,9 @@ interface SelectedRouteProps {
 import Metadata from "./routes/route/metadata";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCentralStore } from "@/hooks/central-store";
+import { getPrice } from "@/lib/exchangeRate";
+import { Assets, Chain, Chains, QuoteResponse } from "@chainflip/sdk/swap";
+import { removeConsecutiveDuplicates } from "@/lib/helper/removeDups";
 
 function SelectedRoute(props: SelectedRouteProps) {
   const initialStep = props.route.path[0];
