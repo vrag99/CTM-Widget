@@ -1,0 +1,3 @@
+[submodule "ccm_maya_contracts/lib/forge-std"]
+	path = ccm_maya_contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
