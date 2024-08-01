@@ -23,7 +23,7 @@ interface sdkInitiationOptions {
   backendServiceUrl?: string;
 }
 
-interface QouteOptions {
+export interface QouteOptions {
   srcChain: Chain;
   srcAsset: Token;
   destChain: Chain;
@@ -69,9 +69,30 @@ export class ChainflipSdkProvider {
     return await this.sdk.getAssets(srcChain)
   }
 
+  public async getDepositAddress(qoute: QouteOptions,destinationAddress:string) {
+    console.log("called")
+    
+    const data= await  this.sdk.requestDepositAddress({
+      ...qoute,
+      srcAsset: qoute.srcAsset.id,
+      destAsset: qoute.destAsset.id,
+      destAddress:destinationAddress
+    });
+    console.log(data)
+    return data;
+  }
+
+  public async getStatus(channelId:string){
+    const status = await this.sdk.getStatus({id:channelId});
+    return status.state;
+  }
+
   public async executeSwap(
     qoute: QuoteResponse,
     poolInfo: any
   ) {
+    if(qoute){
+
+    }
   }
 }

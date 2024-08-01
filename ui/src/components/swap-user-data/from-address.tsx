@@ -5,18 +5,15 @@ import {
   useConnectModal,
   useActiveAccount,
   useWalletDetailsModal,
-  useActiveWallet,
-  useDisconnect,
 } from "thirdweb/react";
 import { useCentralStore } from "@/hooks/central-store";
 import { useContext, useEffect, useState } from "react";
-import { Chains } from "@chainflip/sdk/swap";
-import { ChainflipContext } from "@/context/chainflip";
-const client = createThirdwebClient({
+
+
+export const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
 });
-import { web3Enable, web3Accounts } from '@polkadot/extension-dapp';
-const wallets = [
+export const wallets = [
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("io.xdefi"),
@@ -32,59 +29,27 @@ declare global {
 export default function FromAddress() {
   const { connect, isConnecting } = useConnectModal();
   const activeAccount = useActiveAccount();
-  const activeWallet = useActiveWallet();
-  const { fromChain, setSwapEnabled, activeAddress, setActiveAddress, setWalletConnected } = useCentralStore();
+  const {  activeAddress, setActiveAddress, setWalletConnected } = useCentralStore();
   const [truncate, setTruncate] = useState<string>("");
-  const disconnet = useDisconnect()
-  const sdk = useContext(ChainflipContext);
+
   async function handleConnect() {
     try {
-      const wallet = await connect({ client, wallets });
+      const wallet = await connect({ client, wallets, });
+      console.log(wallet)
       if (wallet) {
         setWalletConnected(true);
+        const addr =wallet.getAccount();
+        if(addr){
+          setActiveAddress(addr.address)
+        }
       }
     } catch (error) {
+      console.log("here")
+      console.log(error)
       setWalletConnected(false);
     }
   }
 
-  async function call() {
-    if (fromChain !== "" && activeWallet !== undefined) {
-      if (fromChain === Chains.Bitcoin) {
-        if (activeWallet.id !== "io.xdefi") {
-          disconnet.disconnect(activeWallet);
-          const wallets = [createWallet("io.xdefi")];
-          await connect({ client, wallets });
-        }
-        if (window.xfi && window.xfi.bitcoin) {
-          window.xfi.bitcoin.changeNetwork(
-            sdk.testnet ? "testnet" : "mainnet"
-          );
-          const bitcoinAccounts = await window.xfi.bitcoin.requestAccounts();
-          if (bitcoinAccounts[0]) setActiveAddress(bitcoinAccounts[0]);
-        }
-      } else if (fromChain === Chains.Ethereum || fromChain === Chains.Arbitrum) {
-        setActiveAddress(activeAccount?.address ? activeAccount.address : "");
-      } else if (fromChain === Chains.Polkadot) {
-
-        if (activeWallet.id !== "app.subwallet") {
-          disconnet.disconnect(activeWallet);
-          const wallets = [createWallet("app.subwallet")];
-          await connect({ client, wallets });
-        }
-        const extensions = await web3Enable("My dapp");
-
-        if (extensions.length > 0) {
-          setSwapEnabled(false)
-        }
-
-        const allAccounts = await web3Accounts();
-        if (allAccounts.length > 0) {
-          setActiveAddress(allAccounts[0].address);
-        }
-      }
-    }
-  }
 
   useEffect(() => {
     if (activeAddress) {
@@ -104,7 +69,6 @@ export default function FromAddress() {
     detailsModal.open({ client });
   }
 
-  console.log("activeAddress", activeAddress)
 
   return (
     <>

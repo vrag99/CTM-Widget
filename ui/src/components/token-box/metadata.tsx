@@ -36,7 +36,7 @@ export default function Metadata({ type }: TokenBoxVariant) {
 }
 
 function AmountInUSD({ type }: TokenBoxVariant) {
-  const { fromChain, fromToken, toChain, toToken, fromAmount, toAmount , setFromAmountUSD,setToAmountUSD,fromAmountUSD,toAmountUSD } =
+  const { fromChain, fromToken, toChain, toToken, fromAmount, toAmount, setFromAmountUSD, setToAmountUSD, fromAmountUSD, toAmountUSD, loading, setLoading } =
     useCentralStore();
   const [amountInUSD, setAmountInUSD] = useState(0);
   const [slippage, setSlippage] = useState(0);
@@ -44,31 +44,37 @@ function AmountInUSD({ type }: TokenBoxVariant) {
     type === "from" ? fromAmount : toAmount,
     1000
   );
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const token = type === "from" ? fromToken : toToken;
   const amount = type === "from" ? fromAmount : toAmount;
   const chain = type === "from" ? fromChain : toChain;
   const setter = type === "from" ? setFromAmountUSD : setToAmountUSD;
   useEffect(() => {
     const fetchAmountInUSD = async () => {
-      setLoading(true);
-
-      if (Number(amount) > 0 && token && chain) {
-        const perToken = await getPrice(token.id);
-        setAmountInUSD(Number(amount) * perToken);
-        setter(Number(amount) * perToken);
+      try {
+        if (Number(amount) > 0 && token && chain) {
+          const perToken = await getPrice(token.id);
+          setAmountInUSD(Number(amount) * perToken);
+          setter(Number(amount) * perToken);
+        } else {
+          setter(0)
+        }
+      } catch (e) {
+        setter(0)
+      } finally {
+        if (type === "to")
+          setLoading(false)
       }
-      setLoading(false);
     };
 
     fetchAmountInUSD();
   }, [debounceAmount, type, token, chain]);
 
-  useEffect(()=>{
-    if(fromAmountUSD> 0 && toAmountUSD > 0){
+  useEffect(() => {
+    if (fromAmountUSD > 0 && toAmountUSD > 0) {
       setSlippage(((toAmountUSD - fromAmountUSD) / fromAmountUSD) * 100)
     }
-  },[toAmountUSD,fromAmountUSD])
+  }, [toAmountUSD, fromAmountUSD])
 
   return (
     <>
@@ -77,7 +83,7 @@ function AmountInUSD({ type }: TokenBoxVariant) {
       ) : (
         <p className="text-muted-foreground font-medium text-sm">
           ${amountInUSD.toFixed(2)}{" "}
-          {type === "to" && <span className={slippage > 0 ? "text-primary":"text-destructive"}>({slippage.toFixed(2)}%)</span>}
+          {type === "to" && <span className={slippage > 0 ? "text-primary" : "text-destructive"}>({slippage.toFixed(2)}%)</span>}
         </p>
       )}
     </>
@@ -86,21 +92,21 @@ function AmountInUSD({ type }: TokenBoxVariant) {
 
 function Balance({ type }: TokenBoxVariant) {
   const [balance, setBalance] = useState(0);
-  const { fromToken, toToken, toChain, fromChain,activeAddress } = useCentralStore();
+  const { fromToken, toToken, toChain, fromChain, activeAddress , setActiveAddress } = useCentralStore();
   const [Bitaccount, setAccount] = useState();
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
   const switchChain = useSwitchActiveWalletChain();
   const sdk = useContext(ChainflipContext);
   const [loading, setLoading] = useState(false);
-  const token = type === "from" ? fromToken : toToken;
-  const typeChain = type === "from" ? fromChain : toChain;
-  const wsProvider = new WsProvider('wss://rpc.polkadot.io');
+  const token = fromToken  ;
+  const typeChain = fromChain  ;
+  // const wsProvider = new WsProvider('wss://polkadot-asset-hub-rpc.polkadot.io');
 
 
   useEffect(() => {
     const fetchBalance = async () => {
-      if (!account || !chain  || (activeAddress == "")) return;
+      if (!account || !chain || (activeAddress == "")) return;
 
       setLoading(true);
       if (token && typeChain) {
@@ -126,6 +132,7 @@ function Balance({ type }: TokenBoxVariant) {
               sdk.testnet ? "testnet" : "mainnet"
             );
             const bitcoinAccounts = await window.xfi.bitcoin.requestAccounts();
+            setActiveAddress(bitcoinAccounts[0]);
             const balance = await getBitcoinBalance(
               bitcoinAccounts[0],
               sdk.testnet
@@ -137,10 +144,10 @@ function Balance({ type }: TokenBoxVariant) {
 
 
         if (typeChain === Chains.Polkadot) {
-          const api = await ApiPromise.create({ provider: wsProvider });
-          const res= await api.query.system.account(activeAddress);
-          ///@ts-ignore
-          setBalance(Number(res.data.free.toString()) / 1e10);
+          // const api = await ApiPromise.create({ provider: wsProvider });
+          // const res = await api.query.system.account(activeAddress);
+          // ///@ts-ignore
+          // setBalance(Number(res.data.free.toString()) / 1e10);
         }
       }
       setLoading(false);
@@ -153,7 +160,7 @@ function Balance({ type }: TokenBoxVariant) {
     <>
       {loading ? (
         <BalanceLoadingSkeleton />
-      ) : (
+      ) : ( type === "from" &&
         <p className="text-sm text-muted-foreground">
           Balance:{" "}
           <span className="text-foreground font-bold">

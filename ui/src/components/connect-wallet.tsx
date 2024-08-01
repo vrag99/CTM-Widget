@@ -3,7 +3,6 @@ import { ChainflipContext } from "@/context/chainflip";
 import { useCentralStore } from "@/hooks/central-store";
 import { Chains } from "@chainflip/sdk/swap";
 import { web3Accounts, web3Enable } from "@polkadot/extension-dapp";
-import { ArrowUpDown } from "lucide-react";
 import { useContext } from "react";
 import { createThirdwebClient } from "thirdweb";
 import {
@@ -13,6 +12,7 @@ import {
   useDisconnect,
 } from "thirdweb/react";
 import { createWallet } from "thirdweb/wallets";
+import { wallets } from "@/components/swap-user-data/from-address";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
@@ -23,7 +23,7 @@ export default function ConnectWallet() {
   const { disconnect } = useDisconnect();
   const { connect } = useConnectModal();
   const activeAccount = useActiveAccount();
-  const { fromChain, setActiveAddress, setSwapEnabled } = useCentralStore();
+  const { fromChain, setActiveAddress, setSwapEnabled, setWalletConnected} = useCentralStore();
   const sdk = useContext(ChainflipContext);
 
   async function connectToWallet() {
@@ -37,6 +37,7 @@ export default function ConnectWallet() {
         if (window.xfi && window.xfi.bitcoin) {
           window.xfi.bitcoin.changeNetwork(sdk.testnet ? "testnet" : "mainnet");
           const bitcoinAccounts = await window.xfi.bitcoin.requestAccounts();
+          setWalletConnected(true)
           if (bitcoinAccounts[0]) setActiveAddress(bitcoinAccounts[0]);
         }
       } else if (
@@ -45,10 +46,12 @@ export default function ConnectWallet() {
       ) {
         setActiveAddress(activeAccount?.address ? activeAccount.address : "");
       } else if (fromChain === Chains.Polkadot) {
+
         if (activeWallet.id !== "app.subwallet") {
           disconnect(activeWallet);
           const wallets = [createWallet("app.subwallet")];
           await connect({ client, wallets });
+          setWalletConnected(true)
         }
         const extensions = await web3Enable("My dapp");
 
@@ -61,15 +64,20 @@ export default function ConnectWallet() {
           setActiveAddress(allAccounts[0].address);
         }
       }
+    } else {
+      const wallet = await connect({ client, wallets });
+      const account = wallet.getAccount();
+      if (account !== undefined) {
+        setActiveAddress(account.address);
+      }
+      setWalletConnected(true);
+      setSwapEnabled(true)
     }
   }
   return (
     <Button
       className="w-full text-base"
       size={"lg"}
-      variant={"expandIcon"}
-      iconPlacement="right"
-      Icon={ArrowUpDown}
       onClick={connectToWallet}
     >
       Connect Wallet

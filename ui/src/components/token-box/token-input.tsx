@@ -4,8 +4,10 @@ import { useState, useEffect, useContext } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/debounce";
 import { ChainflipContext } from "@/context/chainflip";
-import { Chain } from "@chainflip/sdk/swap";
+import { Chain, Chains } from "@chainflip/sdk/swap";
 import { ethers } from "ethers";
+import { ThorchainContext } from "@/context/thorchain";
+import { throchainMap } from "@/lib/thorchainAssetsMap";
 
 export default function TokenInput({ type }: TokenBoxVariant) {
   const {
@@ -17,16 +19,19 @@ export default function TokenInput({ type }: TokenBoxVariant) {
     fromToken,
     toToken,
     setToAmount,
-    setQoute
+    setQoute,
+    loading,
+    setLoading,
+    setThorchainQoute
   } = useCentralStore();
   const debouncedFromAmount = useDebounce(fromAmount, 1000);
   const sdk = useContext(ChainflipContext);
-  const [loadingSwappedAmount, setLoadingSwappedAmount] = useState(false);
   const [error, setError] = useState(false);
-
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const thorSDK = useContext(ThorchainContext);
   useEffect(() => {
     async function fetchSwappedAmount() {
-      setLoadingSwappedAmount(true);
+      setLoading(true);
       if (
         Number(fromAmount) > 0 &&
         fromToken !== null &&
@@ -46,15 +51,36 @@ export default function TokenInput({ type }: TokenBoxVariant) {
           const outAmount =
             Number(qoute.quote.egressAmount) / 10 ** toToken.data.decimals;
           setToAmount(outAmount.toString());
+
+          //Thorchain Qoute
+          const fromIndex = thorSDK.Assets.findIndex((asset) => {
+            return asset.asset.split("-")[0] === fromToken.id && fromChain === throchainMap(asset.chain)
+          });
+          const toIndex = thorSDK.Assets.findIndex((asset) => {
+            return asset.asset.split("-")[0] === toToken.id && toChain === throchainMap(asset.chain)
+          });
+          if (fromIndex !== -1 && toIndex !== -1) {
+            try {
+              const qouteParam = await thorSDK.getQouteParam(fromIndex, toIndex, Number(fromAmount) * 1e8)
+              if (qouteParam) {
+                setThorchainQoute(qouteParam)
+              }
+            } catch (error) {
+              setErrorMessage("Error fetching Thorchain Qoute")
+
+              console.log(error)
+            }
+          }
           setError(false)
         } catch (error) {
           ///@ts-ignore
-          console.log("er ", error.response.data.message);
+          setErrorMessage(error.response.data.message);
+          ///@ts-ignore
+          // console.log(error)
           setError(true);
         }
 
       }
-      setLoadingSwappedAmount(false);
     }
 
     fetchSwappedAmount();
@@ -71,14 +97,15 @@ export default function TokenInput({ type }: TokenBoxVariant) {
           onChange={(e) => setFromAmount(e.target.value)}
           value={fromAmount}
           error={error}
+          errorMessage={errorMessage}
         />
-      ) : loadingSwappedAmount ? (
+      ) : loading ? (
         <SwapAmountSkeleton />
       ) : (
         <AmountInput
           placeholder={toChain ? "0.00" : "--"}
           disabled={!toChain}
-          value={toAmount}
+          value={toAmount === "--" ? "--" :  Number(toAmount).toFixed(4)}
           readOnly
         />
       )}

@@ -27,7 +27,7 @@ const XDEFI_ID = "io.xdefi";
 export default function ChainSelector({ chains, type }: ChainSelectorProps) {
   const [mappableChains, setMappableChains] = useState<ChainInfo[]>([]);
   const sdk = useContext(ChainflipContext);
-  const { fromChain, setFromChain, setToChain ,setWalletConnected,walletConnected} = useCentralStore();
+  const { fromChain, setFromChain, setToChain ,setWalletConnected,walletConnected,setToAmount,setToAmountUSD,setFromAmount,setFromAmountUSD} = useCentralStore();
   const wallet = useActiveWallet();
   const activeWallet = wallet?.id;
   useEffect(() => {
@@ -50,6 +50,10 @@ export default function ChainSelector({ chains, type }: ChainSelectorProps) {
   return (
     <Select
       onValueChange={(chain) => {
+        setToAmount("--");
+        setFromAmount("--");
+        setToAmountUSD(0);
+        setFromAmountUSD(0);
         if (type === "from") {
           setFromChain(chain);
           const wallet = WALLETS[chain].id;
