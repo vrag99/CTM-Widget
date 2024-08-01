@@ -140,8 +140,6 @@ export default function SwapCard() {
       const depositAddr = await sdk.getDepositAddress(options, destinationAddress);
       console.log(depositAddr )
       setDepositAddressResponse(depositAddr);
-    } else {
-
     }
 
   }

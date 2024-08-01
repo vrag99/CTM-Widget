@@ -1,6 +1,7 @@
 import { type Route } from "@/lib/types";
 import Metadata from "./metadata";
 import Path from "./path";
+import { Badge } from "@/components/ui/badge";
 
 interface SwapRouteProps {
   route: Route;
@@ -22,7 +23,10 @@ export default function SwapRoute({
       }`}
       onClick={() => setSelectedRouteIndex(index)}
     >
-      <Metadata metadata={route.metadata} />
+      <div className="flex w-full items-center justify-between">
+        <Metadata metadata={route.metadata} />
+        <Badge variant={"secondary"}> {route.sdk} </Badge>
+      </div>
       <Path path={route.path} />
     </div>
   );
