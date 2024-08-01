@@ -1,13 +1,12 @@
-import { Asset } from "@chainflip/sdk/swap";
 import axios from "axios";
 
 const EXCHANGE_RATE_API = (symbol: string) =>
   "https://api.mobula.io/api/1/market/data?symbol=" + symbol;
 
-export const getPrice = async (symbol: string) => {
+export const getPrice = async (symbol: string,apiKey:string) => {
   const res = await axios.get(EXCHANGE_RATE_API(symbol), {
     headers: {
-      Authorization: import.meta.env.VITE_MOBULA_API,
+      Authorization: apiKey,
     },
   });
   const data = await res.data;

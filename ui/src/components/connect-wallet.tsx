@@ -3,7 +3,7 @@ import { ChainflipContext } from "@/context/chainflip";
 import { useCentralStore } from "@/hooks/central-store";
 import { Chains } from "@chainflip/sdk/swap";
 import { web3Accounts, web3Enable } from "@polkadot/extension-dapp";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { createThirdwebClient } from "thirdweb";
 import {
   useActiveAccount,
@@ -14,17 +14,20 @@ import {
 import { createWallet } from "thirdweb/wallets";
 import { wallets } from "@/components/swap-user-data/from-address";
 
-const client = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
-});
+
 
 export default function ConnectWallet() {
   const activeWallet = useActiveWallet();
   const { disconnect } = useDisconnect();
   const { connect } = useConnectModal();
   const activeAccount = useActiveAccount();
-  const { fromChain, setActiveAddress, setSwapEnabled, setWalletConnected} = useCentralStore();
-  const sdk = useContext(ChainflipContext);
+  const { fromChain, setActiveAddress, setSwapEnabled, setWalletConnected } = useCentralStore();
+  const { sdk, thirdwebSecretKey } = useContext(ChainflipContext);
+  if (!thirdwebSecretKey) return null;
+  const client = useMemo(() => createThirdwebClient({
+    clientId: thirdwebSecretKey,
+  }), [thirdwebSecretKey]);
+
 
   async function connectToWallet() {
     if (fromChain !== "" && activeWallet !== undefined) {

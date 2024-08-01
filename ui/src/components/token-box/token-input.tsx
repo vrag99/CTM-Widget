@@ -4,8 +4,7 @@ import { useState, useEffect, useContext } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/debounce";
 import { ChainflipContext } from "@/context/chainflip";
-import { Chain, Chains } from "@chainflip/sdk/swap";
-import { ethers } from "ethers";
+import { Chain  } from "@chainflip/sdk/swap";
 import { ThorchainContext } from "@/context/thorchain";
 import { throchainMap } from "@/lib/thorchainAssetsMap";
 
@@ -25,7 +24,7 @@ export default function TokenInput({ type }: TokenBoxVariant) {
     setThorchainQoute
   } = useCentralStore();
   const debouncedFromAmount = useDebounce(fromAmount, 1000);
-  const sdk = useContext(ChainflipContext);
+  const {sdk} = useContext(ChainflipContext);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const thorSDK = useContext(ThorchainContext);

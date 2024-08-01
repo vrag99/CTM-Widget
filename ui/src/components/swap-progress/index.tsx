@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Check, AlertTriangle } from "lucide-react";
 import { useCentralStore } from "@/hooks/central-store";
 import { ethers, Signer } from "ethers";
@@ -23,16 +23,6 @@ const PROGRESS_STATES: ProgressState[] = [
     status: "pending",
   },
   {
-    name: "Executing your Swap",
-    state: "SWAP_EXECUTED",
-    status: "pending",
-  },
-  {
-    name: "Scheduling funds for the destination address",
-    state: "EGRESS_SCHEDULED",
-    status: "pending",
-  },
-  {
     name: "Requesting a broadcast to send you the funds",
     state: "BROADCAST_REQUESTED",
     status: "pending",
@@ -49,17 +39,18 @@ const PROGRESS_STATES: ProgressState[] = [
   },
 ];
 
+
+
 interface SwapProgressProps {
   open: boolean;
   setOpen: (open: boolean) => void;
 }
-import { client } from "@/components/swap-user-data/from-address";
 
 import { ethers6Adapter } from "thirdweb/adapters/ethers6";
 import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
 import { Assets, Chains } from "@chainflip/sdk/swap";
-import { ThorchainContext } from "@/context/thorchain";
 import { ChainflipContext } from "@/context/chainflip";
+import { createThirdwebClient } from "thirdweb";
 type Status =
   | "DEPOSIT_RECEIVED"
   | "SWAP_EXECUTED"
@@ -81,9 +72,8 @@ export default function SwapProgress(props: SwapProgressProps) {
   const totalStates = PROGRESS_STATES.length;
   const [currentStep, setCurrentStep] = useState(0);
   const currentProgress = Math.floor((currentStep / totalStates) * 100);
-  const { fromToken, fromChain, depositAddressResponse, activeAddress } =
+  const { fromToken, fromChain, depositAddressResponse } =
     useCentralStore();
-  const [signer, setSinger] = useState<Signer | null>(null);
   const [status, setStatus] = useState<Status>("AWAITING_DEPOSIT");
   const chain = useActiveWalletChain();
   const account = useActiveAccount();
@@ -112,7 +102,14 @@ export default function SwapProgress(props: SwapProgressProps) {
       PROGRESS_STATES[currentStep].status = "failed";
     }
   };
-  const sdk = useContext(ChainflipContext);
+  const { sdk, thirdwebSecretKey } = useContext(ChainflipContext);
+
+  if (!thirdwebSecretKey) return null;
+  const client = useMemo(() => createThirdwebClient({
+    clientId: thirdwebSecretKey,
+  }), [thirdwebSecretKey]);
+
+
   function exponentialBackoff(
     initialInterval: number,
     exponent = 2,
@@ -176,6 +173,21 @@ export default function SwapProgress(props: SwapProgressProps) {
             } catch (error) {
               errorStep();
             }
+          } else {
+            if (!fromToken.data.contractAddress) return;
+            const contract = new ethers.Contract(fromToken.data.contractAddress, ['function transfer(address,uint256)'], signer)
+            try {
+              const tx = await contract.transfer(depositAddressResponse.depositAddress, depositAddressResponse.amount)
+              const reciepent = await tx.wait()
+              const confirmations = await reciepent?.confirmations();
+              if (reciepent === null) {
+                errorStep()
+              } else if (confirmations === 0) {
+                errorStep()
+              }
+            } catch (error) {
+              errorStep()
+            }
           }
         }
       }
@@ -184,25 +196,18 @@ export default function SwapProgress(props: SwapProgressProps) {
 
   useEffect(() => {
     if (status === "AWAITING_DEPOSIT") {
-      nextStep();
-    } else if (status === "DEPOSIT_RECEIVED") {
-      nextStep();
-    } else if (status === "SWAP_EXECUTED") {
-      nextStep();
-    } else if (status === "EGRESS_SCHEDULED") {
-      nextStep();
-    } else if (status === "BROADCAST_REQUESTED") {
-      nextStep();
-    } else if (status === "BROADCASTED") {
-      nextStep();
-    } else if (status === "BROADCAST_ABORTED") {
-      errorStep();
-    } else if (status === "COMPLETE") {
-      nextStep();
-    } else if (status === "FAILED") {
-      errorStep();
+      resetProgress()
+    } else {
+      const index = PROGRESS_STATES.findIndex((state) => state.state === status);
+      for (let i = currentStep; i <= index; i++) {
+        PROGRESS_STATES[i].status = "completed";
+      }
+      if (index < totalStates - 1)
+        PROGRESS_STATES[index + 1].status = "loading";
     }
-  }, [status]);
+  }, [status])
+
+
 
   useEffect(() => {
     swap();
@@ -210,9 +215,8 @@ export default function SwapProgress(props: SwapProgressProps) {
 
   return (
     <Card
-      className={`h-[22rem] absolute bg-card/90 backdrop-blur z-50 border-t transition-all duration-500 ease-in-out ${
-        props.open && "-translate-y-[100%]"
-      }`}
+      className={`h-[22rem] absolute bg-card/90 backdrop-blur z-50 border-t transition-all duration-500 ease-in-out ${props.open && "-translate-y-[100%]"
+        }`}
     >
       <CardHeader className="flex flex-row items-center justify-between gap-4">
         <CardTitle>Swap in Progress</CardTitle>

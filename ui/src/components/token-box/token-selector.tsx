@@ -12,13 +12,13 @@ import { useCentralStore } from "@/hooks/central-store";
 import { TOKEN_ICONS } from "@/lib/token-icon";
 import { type Token } from "@/lib/types";
 import { type TokenBoxVariant } from "@/lib/types";
-import { Asset, Chain } from "@chainflip/sdk/swap";
+import { Chain } from "@chainflip/sdk/swap";
 import { useContext, useEffect, useState } from "react";
 
 export default function TokenSelector({ type }: TokenBoxVariant) {
   const { fromChain, toChain, setFromToken, setToToken } = useCentralStore();
   const [tokens, setTokens] = useState<Token[]>([]);
-  const sdk = useContext(ChainflipContext);
+  const {sdk} = useContext(ChainflipContext);
 
   async function fetchTokens() {
     if (type === "from" && fromChain) {

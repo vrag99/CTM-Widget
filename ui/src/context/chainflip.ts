@@ -1,4 +1,14 @@
 import { ChainflipSdkProvider } from "@/lib/chainflip";
 import { createContext } from "react";
 
-export const ChainflipContext = createContext(new ChainflipSdkProvider({}));
+interface contextType {
+    thirdwebSecretKey?: string;
+    mobulaAPIKey?: string;
+    sdk: ChainflipSdkProvider;
+}
+
+export const ChainflipContext = createContext<contextType>({
+    thirdwebSecretKey: "",
+    mobulaAPIKey: "",
+    sdk:new ChainflipSdkProvider({})
+});

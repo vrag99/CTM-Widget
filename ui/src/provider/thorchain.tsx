@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 
 export const ThorChainProvider = ({ children }:{children:React.ReactNode}) => {
-    const [sdk,setSdk] = useState<ThorchainSDKProvider>(new ThorchainSDKProvider());
+    const [sdk,] = useState<ThorchainSDKProvider>(new ThorchainSDKProvider());
     useEffect(()=>{
         sdk.setAssets()
     },[sdk])

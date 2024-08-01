@@ -1,5 +1,4 @@
 import {
-  Asset,
   AssetData,
   Chain,
   ChainData,
@@ -87,12 +86,4 @@ export class ChainflipSdkProvider {
     return status.state;
   }
 
-  public async executeSwap(
-    qoute: QuoteResponse,
-    poolInfo: any
-  ) {
-    if(qoute){
-
-    }
-  }
 }

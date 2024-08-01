@@ -7,12 +7,11 @@ import {
   useWalletDetailsModal,
 } from "thirdweb/react";
 import { useCentralStore } from "@/hooks/central-store";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
+import { ChainflipContext } from "@/context/chainflip";
 
 
-export const client = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
-});
+
 export const wallets = [
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
@@ -29,8 +28,14 @@ declare global {
 export default function FromAddress() {
   const { connect, isConnecting } = useConnectModal();
   const activeAccount = useActiveAccount();
-  const {  activeAddress, setActiveAddress, setWalletConnected } = useCentralStore();
+  const { activeAddress, setActiveAddress, setWalletConnected } = useCentralStore();
   const [truncate, setTruncate] = useState<string>("");
+  const { thirdwebSecretKey } = useContext(ChainflipContext);
+  if (!thirdwebSecretKey) return null;
+  const client = useMemo(() => createThirdwebClient({
+    clientId: thirdwebSecretKey,
+  }), [thirdwebSecretKey]);
+
 
   async function handleConnect() {
     try {
@@ -38,8 +43,8 @@ export default function FromAddress() {
       console.log(wallet)
       if (wallet) {
         setWalletConnected(true);
-        const addr =wallet.getAccount();
-        if(addr){
+        const addr = wallet.getAccount();
+        if (addr) {
           setActiveAddress(addr.address)
         }
       }

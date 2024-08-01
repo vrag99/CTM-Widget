@@ -1,6 +1,6 @@
 import { TokenBoxVariant } from "@/lib/types";
 import { useCentralStore } from "@/hooks/central-store";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPrice } from "@/lib/exchangeRate";
 import { useDebounce } from "@/hooks/debounce";
@@ -15,16 +15,11 @@ import { ThirdWebChainsMap } from "@/lib/thirdWebChain";
 import { ChainflipContext } from "@/context/chainflip";
 import { Chains } from "@chainflip/sdk/swap";
 import { getBitcoinBalance } from "@/lib/bitcoin";
-import { ApiPromise, WsProvider } from '@polkadot/api';
 declare global {
   interface Window {
     xfi: any;
   }
 }
-
-const client = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID,
-});
 
 export default function Metadata({ type }: TokenBoxVariant) {
   return (
@@ -44,6 +39,7 @@ function AmountInUSD({ type }: TokenBoxVariant) {
     type === "from" ? fromAmount : toAmount,
     1000
   );
+  const { mobulaAPIKey } = useContext(ChainflipContext)
   // const [loading, setLoading] = useState(false);
   const token = type === "from" ? fromToken : toToken;
   const amount = type === "from" ? fromAmount : toAmount;
@@ -51,9 +47,10 @@ function AmountInUSD({ type }: TokenBoxVariant) {
   const setter = type === "from" ? setFromAmountUSD : setToAmountUSD;
   useEffect(() => {
     const fetchAmountInUSD = async () => {
+      if (!mobulaAPIKey) return;
       try {
         if (Number(amount) > 0 && token && chain) {
-          const perToken = await getPrice(token.id);
+          const perToken = await getPrice(token.id, mobulaAPIKey);
           setAmountInUSD(Number(amount) * perToken);
           setter(Number(amount) * perToken);
         } else {
@@ -92,16 +89,20 @@ function AmountInUSD({ type }: TokenBoxVariant) {
 
 function Balance({ type }: TokenBoxVariant) {
   const [balance, setBalance] = useState(0);
-  const { fromToken, toToken, toChain, fromChain, activeAddress , setActiveAddress } = useCentralStore();
-  const [Bitaccount, setAccount] = useState();
+  const { fromToken, toToken, fromChain, activeAddress, setActiveAddress } = useCentralStore();
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
   const switchChain = useSwitchActiveWalletChain();
-  const sdk = useContext(ChainflipContext);
+  const { sdk, thirdwebSecretKey } = useContext(ChainflipContext);
   const [loading, setLoading] = useState(false);
-  const token = fromToken  ;
-  const typeChain = fromChain  ;
+  const token = fromToken;
+  const typeChain = fromChain;
   // const wsProvider = new WsProvider('wss://polkadot-asset-hub-rpc.polkadot.io');
+  if (!thirdwebSecretKey) return null;
+  const client = useMemo(()=>createThirdwebClient({
+    clientId: thirdwebSecretKey,
+  }),[thirdwebSecretKey]);
+
 
 
   useEffect(() => {
@@ -160,7 +161,7 @@ function Balance({ type }: TokenBoxVariant) {
     <>
       {loading ? (
         <BalanceLoadingSkeleton />
-      ) : ( type === "from" &&
+      ) : (type === "from" &&
         <p className="text-sm text-muted-foreground">
           Balance:{" "}
           <span className="text-foreground font-bold">

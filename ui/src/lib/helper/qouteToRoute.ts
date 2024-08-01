@@ -10,7 +10,8 @@ import { QouteThorChain } from "../types/qouteThorchain";
  * @returns A Promise that resolves to a Route object.
  */
 export async function convertToRoute(qoute: QuoteResponse,
-    sdk: ChainflipSdkProvider
+    sdk: ChainflipSdkProvider,
+    apiKey:string
 ): Promise<Route> {
     const data = qoute.quote;
     const fee = qoute.quote.includedFees
@@ -20,7 +21,7 @@ export async function convertToRoute(qoute: QuoteResponse,
             if (!token) return 0;
             const amount =
                 (Number(fee.amount) / 10 ** token.decimals) *
-                (await getPrice(fee.asset));
+                (await getPrice(fee.asset,apiKey));
             return amount;
         })
         .reduce(async (a, b) => (await a) + (await b));
@@ -36,8 +37,8 @@ export async function convertToRoute(qoute: QuoteResponse,
     }[] = [];
 
     for (const [index, pool] of data.poolInfo.entries()) {
-        const baseAssetPrice = await getPrice(pool.baseAsset.asset);
-        const quoteAssetPrice = await getPrice(pool.quoteAsset.asset);
+        const baseAssetPrice = await getPrice(pool.baseAsset.asset,apiKey);
+        const quoteAssetPrice = await getPrice(pool.quoteAsset.asset,apiKey);
         const baseAssetTokenData = (
             await sdk.getAwailableAssets(pool.baseAsset.chain)
         ).find((token) => token.asset === pool.baseAsset.asset);
@@ -107,17 +108,18 @@ interface QouteToRouteProps {
     fromAmountUSD: number;
     fromChain: string;
     toChain: string;
+    apiKey:string
 }
 
-export async function thorchainQouteToRoute({qoute,fromToken,toToken,fromChain,toChain,fromAmount,fromAmountUSD}:QouteToRouteProps): Promise<Route | undefined> {
+export async function thorchainQouteToRoute({qoute,fromToken,toToken,fromChain,toChain,fromAmount,fromAmountUSD,apiKey}:QouteToRouteProps): Promise<Route | undefined> {
     console.log(qoute)
     if (fromToken && toToken) {
-        const gasPrice = (Number(qoute.fees.total) / 1e8) * (await getPrice(qoute.fees.asset.split("-")[0]));
+        const gasPrice = (Number(qoute.fees.total) / 1e8) * (await getPrice(qoute.fees.asset.split("-")[0],apiKey));
         const metadata = {
             gasPrice: gasPrice,
             time: qoute.total_swap_seconds,
         };
-        const usdAmount = ((Number(qoute.expected_amount_out) / 1e8) * (await getPrice(toToken.id)));
+        const usdAmount = ((Number(qoute.expected_amount_out) / 1e8) * (await getPrice(toToken.id,apiKey)));
         const path = [
             {
                 amount: Number(fromAmount),

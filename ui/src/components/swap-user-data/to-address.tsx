@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Check, PlusIcon } from "lucide-react";
+import { CheckCircle,  PlusIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useCentralStore } from "@/hooks/central-store";
 import { AlertTriangle } from "lucide-react";
@@ -24,10 +23,10 @@ export default function ToAddress() {
   const isToTokenSelected = toChain && toToken !== null;
 
   const [address, setAddress] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
   const [verified, setVerified] = useState(false);
   const [verificationError, setVerificationError] = useState(false); // added setVerificationError
-  const sdk = useContext(ChainflipContext);
+  const {sdk} = useContext(ChainflipContext);
 
   useEffect(() => {
     if (address !== "" && toChain !== "") {

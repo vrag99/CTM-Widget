@@ -13,6 +13,8 @@ interface ChainflipProviderProps {
   signer?: Signer;
   commisionBps?: number;
   rpcUrl?: string;
+  thirdwebSecretKey?:string;
+  mobulaAPIKey?:string;
 }
 
 export const ChainflipProvider = ({
@@ -24,6 +26,8 @@ export const ChainflipProvider = ({
   brokerUrl,
   rpcUrl,
   network,
+  thirdwebSecretKey,
+  mobulaAPIKey
 }: ChainflipProviderProps) => {
   const getBroker = () => {
     if (brokerUrl) {
@@ -34,7 +38,7 @@ export const ChainflipProvider = ({
     }
     return undefined;
   };
-  const [sdk, setSdk] = useState(
+  const [sdk, ] = useState(
     new ChainflipSdkProvider({
       network: network ? network : useTestnet ? "perseverance" : "mainnet",
       signer,
@@ -44,7 +48,7 @@ export const ChainflipProvider = ({
     })
   );
   return (
-    <ChainflipContext.Provider value={sdk}>
+    <ChainflipContext.Provider value={{sdk , thirdwebSecretKey,mobulaAPIKey}} >
       {children}
     </ChainflipContext.Provider>
   );

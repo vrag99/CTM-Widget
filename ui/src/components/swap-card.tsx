@@ -20,7 +20,7 @@ import {
 } from "thirdweb/react";
 import RouteCard from "./routes";
 import { type Route } from "@/lib/types";
-
+import { ThemeProvider } from "@/components/theme-provider";
 import SwapProgress from "@/components/swap-progress";
 import ConnectWallet from "./connect-wallet";
 import { SelectedRoute, SelectedRouteLoadingSkeleton } from "./routes/selectedRoute";
@@ -28,11 +28,10 @@ import { useCentralStore } from "@/hooks/central-store";
 import { convertToRoute, thorchainQouteToRoute } from "@/lib/helper/qouteToRoute";
 import { QouteOptions } from "@/lib/chainflip";
 import { Chain } from "@chainflip/sdk/swap";
-import { ethers } from "ethers";
 
 export default function SwapCard() {
   const [availableChains, setAvailableChains] = useState<ChainInfo[]>([]);
-  const sdk = useContext(ChainflipContext);
+  const {sdk} = useContext(ChainflipContext);
   useEffect(() => {
     sdk.getChains().then((chains) => {
       const chainsInfo = chains.map((chain) => ({
@@ -71,12 +70,12 @@ export default function SwapCard() {
   const [selectedRoutes, setSelectedRoutes] = useState<Route | null>(null);
   const [routes, setRoutes] = useState<Route[]>([]);
 
-
+  const {mobulaAPIKey} = useContext(ChainflipContext);
   const qouteToRoute = async () => {
-    if (qoute !== null) {
+    if (qoute !== null && mobulaAPIKey) {
       setIsRouteLoading(true);
       setSwapEnabled(true);
-      const route = await convertToRoute(qoute, sdk);
+      const route = await convertToRoute(qoute, sdk,mobulaAPIKey);
       setSelectedRoutes(route);
       setRoutes([route]);
       if (thorchainQoute === null) {
@@ -91,7 +90,7 @@ export default function SwapCard() {
 
 
   async function setRoutesAsync() {
-    if (thorchainQoute && fromToken && toToken) {
+    if (thorchainQoute && fromToken && toToken && mobulaAPIKey) {
       const thorRoute = await thorchainQouteToRoute({
         qoute: thorchainQoute,
         fromToken,
@@ -100,6 +99,7 @@ export default function SwapCard() {
         fromChain,
         fromAmount,
         fromAmountUSD,
+        apiKey:mobulaAPIKey
       });
       if (thorRoute !== undefined) {
         const prevroutes = [...routes];
@@ -124,8 +124,9 @@ export default function SwapCard() {
   const hanleSwapClicked = async () => {
     if (destinationAddress === "") return;
     setOpenSwapProgress(true);
+    console.log(routes)
+    if(routes.length === 0) return;
     const route = routes[selectedRouteIndex];
-    console.log(route)
     if (route.sdk === "Chainflip" && fromToken && toToken) {
       console.log("hrere")
       console.log(Number(fromAmount))
@@ -151,6 +152,7 @@ export default function SwapCard() {
 
   return (
     <>
+     <ThemeProvider defaultTheme="dark">
       <ThirdwebProvider>
         <div className="*:w-[420px] relative overflow-hidden">
           <Card
@@ -211,6 +213,7 @@ export default function SwapCard() {
           <SwapProgress open={openSwapProgress} setOpen={setOpenSwapProgress} />
         </div>
       </ThirdwebProvider>
+      </ThemeProvider>
     </>
   );
 }

@@ -1,5 +1,4 @@
-import { Assets, Chains } from "@chainflip/sdk/swap";
-import { Token } from "./types";
+import {  Chains } from "@chainflip/sdk/swap";
 
 export function throchainMap(chain:string){
     if(chain === "ETH"){
