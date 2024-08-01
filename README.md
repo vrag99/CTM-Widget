@@ -3,7 +3,7 @@
 
 
 
-<Center>**Introducing CTM Widget: your go-to widget. Make your applications cross-chain with less than 10 lines of code!!**
+<Center>Introducing CTM Widget: your go-to widget. Make your applications cross-chain with less than 10 lines of code!!
 
 
 For more detailed explanation , have a look at our <a href="">Wonderful Docs</a></Center>
