@@ -33,8 +33,7 @@ export default function FromAddress() {
   const { connect, isConnecting } = useConnectModal();
   const activeAccount = useActiveAccount();
   const activeWallet = useActiveWallet();
-  const { fromChain, setSwapEnabled, activeAddress, setWalletConnected } = useCentralStore();
-  const [activeAddr, setActiveAddr] = useState<string>(activeAccount?.address ? activeAccount.address : "");
+  const { fromChain, setSwapEnabled, activeAddress, setActiveAddress, setWalletConnected } = useCentralStore();
   const [truncate, setTruncate] = useState<string>("");
   const disconnet = useDisconnect()
   const sdk = useContext(ChainflipContext);
@@ -48,6 +47,7 @@ export default function FromAddress() {
       setWalletConnected(false);
     }
   }
+
   async function call() {
     if (fromChain !== "" && activeWallet !== undefined) {
       if (fromChain === Chains.Bitcoin) {
@@ -61,10 +61,10 @@ export default function FromAddress() {
             sdk.testnet ? "testnet" : "mainnet"
           );
           const bitcoinAccounts = await window.xfi.bitcoin.requestAccounts();
-          if (bitcoinAccounts[0]) setActiveAddr(bitcoinAccounts[0]);
+          if (bitcoinAccounts[0]) setActiveAddress(bitcoinAccounts[0]);
         }
       } else if (fromChain === Chains.Ethereum || fromChain === Chains.Arbitrum) {
-        setActiveAddr(activeAccount?.address ? activeAccount.address : "");
+        setActiveAddress(activeAccount?.address ? activeAccount.address : "");
       } else if (fromChain === Chains.Polkadot) {
 
         if (activeWallet.id !== "app.subwallet") {
@@ -80,18 +80,18 @@ export default function FromAddress() {
 
         const allAccounts = await web3Accounts();
         if (allAccounts.length > 0) {
-          setActiveAddr(allAccounts[0].address);
+          setActiveAddress(allAccounts[0].address);
         }
       }
     }
   }
 
   useEffect(() => {
-    if (activeAddr) {
+    if (activeAddress) {
       const truncatedAddress = `${activeAddress.slice(
         0,
         6
-      )}...${activeAddr?.slice(-4)}`;
+      )}...${activeAddress?.slice(-4)}`;
 
       setTruncate(truncatedAddress);
     }
@@ -103,12 +103,15 @@ export default function FromAddress() {
   function handleOpenModal() {
     detailsModal.open({ client });
   }
+
+  console.log("activeAddress", activeAddress)
+
   return (
     <>
       <div className="flex flex-row justify-between items-center">
         <p className="text-lg">From</p>
         {activeAccount ? (
-          <>{activeAddr !== "" ?
+          <>{activeAddress !== "" ?
             <Button
               className="w-32 rounded-full border border-accent bg-gradient-to-tr from-secondary via-muted to-accent shadow-lg text-foreground"
               variant={"linkHover2"}
