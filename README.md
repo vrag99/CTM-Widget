@@ -6,7 +6,7 @@
 <Center>Introducing CTM Widget: your go-to widget. Make your applications cross-chain with less than 10 lines of code!!
 
 
-For more detailed explanation , have a look at our <a href="">Wonderful Docs</a></Center>
+For more detailed explanation , have a look at our <a href="https://flipwidget.gitbook.io/ctm-widget">Wonderful Docs</a></Center>
 ## What We Are
 
 CTM Widget is engineered to be the definitive swap integration tool for a diverse range of projects from DeFi to gaming. By aggregating liquidity and functionalities from Chainflip, Thorchain, and Maya Protocol, it ensures optimal trading routes, minimal slippage, and the best possible rates for users. This widget is ideal for:
