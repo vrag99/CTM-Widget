@@ -75,8 +75,9 @@ async function main() {
             destChain: Chains.Arbitrum,
             destAsset: Assets.ETH,
             amount: (15e15).toString(),
-            destAddress: "0x98C2D2B26C9B488D709281269e5937cE2604feDa",
+            destAddress: "0x97e5889979f62669B3923b106151AF71A8cd900d",
             ccmMetadata: {
+                // address  payable can also give issues some times
                 message: abiCoder.encode(["address", "address", "uint", "string", "uint"], ["0x37f4bc8B3a06A751fC36BAA928d3fA5b63A540FC", "0x0000000000000000000000000000000000000000", "15000000000000000", `${arr[1]}`, `${arr[2]}`]) as '0x${string}',
                 gasBudget: gas.toString()
             }
@@ -85,9 +86,9 @@ async function main() {
                 signer: wallet
             })
 
-            console.log(transactionHash)
-            // this is the execute swap call along with ccm of the Chainflip SDK
-            
+        console.log(transactionHash)
+        // this is the execute swap call along with ccm of the Chainflip SDK
+
 
     }
 }
