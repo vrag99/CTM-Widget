@@ -59,6 +59,7 @@ contract TokenSwapperAggregator {
 
 
         IERC20(token).transfer(address(uint160(bytes20(srcAddress))), amount);
+        //This performs the swap x --> ARB.ETH
         // } else if (token == address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE)) {
         //     (bool success, ) = address(uint160(bytes20(srcAddress))).call{value: amount}("");
         //     require(success, "Transfer failed");
