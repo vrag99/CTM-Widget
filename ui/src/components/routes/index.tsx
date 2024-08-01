@@ -1,16 +1,9 @@
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Route } from "@/lib/types";
 import SwapRoute from "./route";
 import { ChevronLeft } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+
 import styles from "./route/route.module.css";
 
 interface RouteCardProps {

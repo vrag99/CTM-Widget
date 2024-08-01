@@ -21,6 +21,7 @@ import RouteCard from "./routes";
 import { type Route } from "@/lib/types";
 import { UI_TOKEN_ICONS, UI_CHAIN_ICONS } from "@/lib/ui-icon-mappings";
 import { ChevronRight } from "lucide-react";
+import SwapProgress from "@/components/swap-progress";
 
 
 export default function SwapCard() {
@@ -260,14 +261,19 @@ export default function SwapCard() {
     qouteToRoute()
 
   }, [qoute])
+  // Swap progress states
+  const [openSwapProgress, setOpenSwapProgress] = useState(false);
+
+  const { swapEnabled } = useCentralStore();
 
   return (
     <>
       <ThirdwebProvider>
         <div className="*:w-[420px] relative overflow-hidden">
           <Card
-            className={`bg-card/20 min-h-[44rem] max-h-[50rem] backdrop-blur-md z-50 transition-all duration-500 ${openRouteCard && "brightness-50"
-              }`}
+            className={`bg-card/20 min-h-[42rem] max-h-[50rem] backdrop-blur-md z-50 transition-all duration-500 ${
+              openRouteCard || openSwapProgress && "brightness-50"
+            }`}
           >
             <CardHeader className="flex flex-row items-center mb-2 justify-between">
               <CardTitle>Swap</CardTitle>
@@ -328,6 +334,7 @@ export default function SwapCard() {
             open={openRouteCard}
             setOpen={setOpenRouteCard}
           />
+          <SwapProgress open={openSwapProgress} setOpen={setOpenSwapProgress} />
         </div>
       </ThirdwebProvider>
     </>
