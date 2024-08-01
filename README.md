@@ -11,6 +11,10 @@ For more detailed explanation , have a look at our <a href="">Wonderful Docs</a>
 
 CTM Widget is engineered to be the definitive swap integration tool for a diverse range of projects from DeFi to gaming. By aggregating liquidity and functionalities from Chainflip, Thorchain, and Maya Protocol, it ensures optimal trading routes, minimal slippage, and the best possible rates for users. This widget is ideal for:
 
+
+<img src="./images/3.jpeg"></img>
+<img src="./images/2.jpeg"></img>
+
 - **DeFi Platforms:** Enhance decentralized exchanges (DEXs) with state-of-the-art swap capabilities.
 - **dApps:** Integrate advanced swap functionalities to provide smooth user experiences within decentralized applications.
 - **Cross-Chain Solutions:** Simplify asset trading across different blockchains.
